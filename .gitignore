@@ -1,0 +1,13 @@
+# code editor stuff
+.vscode/
+*.kdev4
+
+# build stuff
+build/
+*.o
+
+# test stuff
+test/
+*.csv
+*.bin
+*.s

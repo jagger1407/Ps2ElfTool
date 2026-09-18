@@ -1,0 +1,450 @@
+#include "Ps2ElfTool_String.h"
+
+u32 _ztlen8(const char* str)
+{
+    if (str == nullptr) return 0;
+    const char* start = str;
+    while (*str != 0x00) {
+        str++;
+    }
+    return str - start;
+}
+
+u32 _ztcnt8(const char* txt, const char* str)
+{
+    if(txt == nullptr || *txt == 0x00 || str == nullptr || *str == 0x00) return 0;
+    u32 occurrences = 0;
+    const char* cur = str;
+    while(*txt != 0x00) {
+        if(*txt == *cur) {
+            while(*cur != 0x00) {
+                if(*txt != *cur) continue;
+                txt++;
+                cur++;
+            }
+            cur = str;
+            occurrences++;
+            continue;
+        }
+        txt++;
+    }
+
+    return occurrences;
+}
+
+bool _ztcmp8(const char* str1, const char* str2)
+{
+    if(str1 == nullptr) {
+        if(str2 == nullptr) return true;
+        return false;
+    }
+    if(str2 == nullptr) return false;
+
+    while(*str1 != 0x00) {
+        if(*str1 != *str2) return false;
+        str1++;
+        str2++;
+    }
+    if(*str2 != 0x00) return false;
+    return true;
+}
+
+u32 _ztcopy8(char* dest, const char* src) {
+    if (dest == nullptr || src == nullptr) return 0;
+    const char* start = src;
+    while (*src != 0x00) {
+        *dest = *src;
+        dest++;
+        src++;
+    }
+    *dest = 0x00;
+    return src - start;
+}
+
+s8 _nibble(char c) {
+    if(c >= 'a' && c <= 'f') {
+        return 10 + (c - 'a');
+    }
+    if(c >= 'A' && c <= 'F') {
+        return 10 + (c - 'A');
+    }
+    if(c >= '0' && c <= '9') {
+        return c - '0';
+    }
+    return -1;
+}
+
+u64 _powersDec[] = {
+                             1,
+                            10,
+                           100,
+                         1'000,
+                        10'000,
+                       100'000,
+                     1'000'000,
+                    10'000'000,
+                   100'000'000,
+                 1'000'000'000,
+                10'000'000'000,
+               100'000'000'000,
+             1'000'000'000'000,
+            10'000'000'000'000,
+           100'000'000'000'000,
+         1'000'000'000'000'000,
+        10'000'000'000'000'000,
+       100'000'000'000'000'000,
+     1'000'000'000'000'000'000,
+    10'000'000'000'000'000'000
+};
+
+u64 _powersHex[] = {
+                   0x1,
+                  0x10,
+                 0x100,
+                0x1000,
+               0x10000,
+              0x100000,
+             0x1000000,
+            0x10000000,
+           0x100000000,
+          0x1000000000,
+         0x10000000000,
+        0x100000000000,
+       0x1000000000000,
+      0x10000000000000,
+     0x100000000000000,
+    0x1000000000000000
+};
+
+String8::String8()
+{
+    this->ptr = nullptr;
+    this->len = 0;
+}
+
+String8::String8(const char* cstr)
+{
+    this->len = _ztlen8(cstr);
+    this->ptr = new char[this->len+1];
+    _ztcopy8(this->ptr, cstr);
+}
+String8::String8(const char* cstr, u32 len)
+{
+    this->len = len;
+    this->ptr = new char[this->len+1];
+    this->ptr[this->len] = 0x00;
+    NCopy(this->ptr, (void*)cstr, this->len);
+}
+String8::String8(ByteArray& ba)
+{
+    if (ba.Cptr() == nullptr) {
+        this->ptr = nullptr;
+        this->len = 0;
+        return;
+    }
+    this->len = ba.Size();
+    this->ptr = new char[this->len + 1];
+    this->ptr[this->len] = 0x00;
+    NCopy(this->ptr, ba.Cptr(), this->len);
+}
+String8::String8(const String8& str)
+{
+    this->len = str.len;
+    this->ptr = new char[this->len + 1];
+    _ztcopy8(this->ptr, str.ptr);
+}
+
+
+String8::~String8()
+{
+    this->len = 0;
+    if(this->ptr) {
+        delete[] this->ptr;
+        this->ptr = nullptr;
+    }
+}
+
+
+String8& String8::operator=(const char* str)
+{
+    if(this->ptr) {
+        delete[] this->ptr;
+        this->ptr = nullptr;
+        this->len = 0;
+    }
+    if(str == nullptr || *str == 0x00) return *this;
+    this->len = _ztlen8(str);
+    this->ptr = new char[this->len+1];
+    _ztcopy8(this->ptr, str);
+
+    return *this;
+}
+
+String8& String8::operator=(String8&& str)
+{
+    if(this->ptr) {
+        delete[] this->ptr;
+        this->ptr = nullptr;
+        this->len = 0;
+    }
+    if(!str.ptr) return *this;
+    this->len = str.len;
+    this->ptr = new char[this->len + 1];
+    _ztcopy8(this->ptr, str.ptr);
+
+    return *this;
+}
+
+String8& String8::operator=(ByteArray ba)
+{
+    if (this->ptr) {
+        delete[] this->ptr;
+        this->ptr = nullptr;
+        this->len = 0;
+    }
+    if (!ba.Cptr()) return *this;
+    this->len = ba.Size();
+    this->ptr = new char[this->len + 1];
+    this->ptr[this->len] = 0x00;
+    NCopy(this->ptr, ba.Cptr(), this->len);
+
+    return *this;
+}
+
+String8& String8::operator=(const String8& str)
+{
+    if (this->ptr) {
+        delete[] this->ptr;
+        this->ptr = nullptr;
+        this->len = 0;
+    }
+    if (!str.ptr) return *this;
+    this->len = str.len;
+    this->ptr = new char[this->len + 1];
+    _ztcopy8(this->ptr, str.ptr);
+
+    return *this;
+}
+
+String8& String8::operator+=(const char* str)
+{
+    if(!str) return *this;
+
+    if(!this->ptr) {
+        *this = str;
+    }
+
+    u32 len = _ztlen8(str);
+    char* newptr = new char[this->len + len + 1];
+    _ztcopy8(newptr, this->ptr);
+    _ztcopy8(newptr + this->len, str);
+    this->len += len;
+    delete[] this->ptr;
+    this->ptr = newptr;
+    return *this;
+}
+
+String8& String8::operator+=(String8& str)
+{
+    *this += str.ptr;
+
+    return *this;
+}
+
+
+String8& String8::operator+=(String8&& str)
+{
+    *this += str.ptr;
+
+    return *this;
+}
+
+bool String8::operator==(const char* str)
+{
+    return _ztcmp8(this->ptr, str);
+}
+bool String8::operator==(String8& str)
+{
+    return _ztcmp8(this->ptr, str.ptr);
+}
+
+char& String8::operator[](u32 index)
+{
+    return this->ptr[index];
+}
+
+String8 operator+(String8 left, const char* right)
+{
+    left += right;
+    return left;
+}
+String8 operator+(const char* left, String8 right)
+{
+    String8 result(left);
+    result += right;
+    return result;
+}
+
+String8 String8::Substring(u64 start)
+{
+    return String8(this->ptr + start);
+}
+
+String8 String8::Substring(u64 start, u64 len)
+{
+    return String8(this->ptr + start, len);
+}
+
+char* String8::Cstr() const { return this->ptr; }
+u32 String8::Length() const { return this->len; }
+
+Array<String8> String8::Split(const char* separator)
+{
+    u32 size = _ztcnt8(this->ptr, separator) + 1;
+    Array<String8> result(size);
+
+    u64 idx = 0;
+
+    u32 seplen = _ztlen8(separator);
+
+    const char* cur = this->ptr;
+    const char* start = cur;
+    while(*cur != 0x00) {
+        if(*cur == *separator && NCompare((u8*)cur, (u8*)separator, seplen)) {
+            result[idx++] = String8(start, cur - start);
+            start = cur + seplen;
+        }
+        cur++;
+    }
+    result[idx] = String8(start, cur - start);
+
+    return result;
+}
+Array<String8> String8::Split(String8& separator)
+{
+    return this->Split(separator.ptr);
+}
+
+String8 String8::ToUpper()
+{
+    String8 result(*this);
+    for (int i = 0; i < result.len; i++) {
+        if (result.ptr[i] >= 'a' && result.ptr[i] <= 'z') {
+            result.ptr[i] = 'A' + (result.ptr[i] - 'a');
+        }
+    }
+    return result;
+}
+String8 String8::ToLower()
+{
+    String8 result(*this);
+    for (int i = 0; i < result.len; i++) {
+        if (result.ptr[i] >= 'A' && result.ptr[i] <= 'Z') {
+            result.ptr[i] = 'a' + (result.ptr[i] - 'A');
+        }
+    }
+    return result;
+}
+
+bool String8::StartsWith(String8 str)
+{
+    if (this->len < str.len || str.len == 0) return false;
+    if (this->ptr == nullptr || str.ptr == nullptr) return false;
+
+    for (int i = 0; i < str.len; i++) {
+        if (this->ptr[i] != str.ptr[i]) return false;
+    }
+    return true;
+}
+bool String8::EndsWith(String8 str)
+{
+    if (this->len < str.len || str.len == 0) return false;
+    if (this->ptr == nullptr || str.ptr == nullptr) return false;
+
+    for (int i = 0; i < str.len; i++) {
+        if (this->ptr[this->len-1-i] != str.ptr[str.len-1-i]) return false;
+    }
+    return true;
+}
+
+bool String8::IsEmpty() 
+{
+    if (this->ptr == nullptr || this->len == 0) return true;
+    return false;
+}
+
+String8 String8::Replace(String8 original, String8 replacement)
+{
+    if(original.len == 0) return String8(this->ptr);
+    Array<String8> parts = this->Split(original);
+    if(parts.Size() <= 1) return String8(this->ptr);
+    String8 result(parts[0]);
+    for(int i=1;i<parts.Size();i++) {
+        result += replacement;
+        result += parts[i];
+    }
+    return result;
+}
+
+String8 String8::Repeat(int count)
+{
+    if (count == 0) return "";
+
+    ByteArray ba(this->len * count);
+    char* dest = (char*)ba.Cptr();
+    char* src = this->ptr;
+    for (int i = 0; i < count; i++) {
+        NCopy(dest + (i * this->len), src, this->len);
+    }
+    return String8(ba);
+}
+
+u64 String8::ToU64()
+{
+    u64 val = 0;
+    if(StartsWith("0x")) {
+        String8 hexval = Substring(2);
+        for(int i=0;i<hexval.len;i++) {
+            val += _nibble(hexval[hexval.len - 1 - i]) << (i * 4);
+        }
+        return val;
+    }
+
+    for(int i=0;i<len;i++) {
+        char c = ptr[len-1-i];
+        if(c < '0' || c > '9') return 0;
+        val += (c - '0') * _powersDec[i];
+    }
+
+    return val;
+}
+
+
+String8 String8::Format(const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    va_list args_copy;
+    va_copy(args_copy, args);
+
+    int len = vsnprintf(nullptr, 0, fmt, args);
+    va_end(args);
+
+    if (len < 0) {
+        va_end(args_copy);
+        return "";
+    }
+
+    String8 result;
+    result.len = len;
+    result.ptr = new char[result.len + 1];
+
+    vsnprintf(result.ptr, result.len + 1, fmt, args_copy);
+    va_end(args_copy);
+
+    return result;
+}
+
+
+
