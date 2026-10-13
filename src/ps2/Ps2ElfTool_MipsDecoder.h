@@ -10,7 +10,7 @@
 
 typedef struct {
     u32 address;
-    String8 name;
+    String name;
 } AsmLabel;
 
 class MipsDecoder
@@ -20,7 +20,7 @@ public:
     MipsDecoder(ByteArray data, u32 start);
 
     static MipsInstruction DecodeInstruction(u32 instruction);
-    static String8 GetInstructionAsm(u32 pc, MipsInstruction* inst);
+    static String GetInstructionAsm(u32 pc, MipsInstruction* inst);
 
     void MovePC(u32 address);
     void LoadData(ByteArray data, u32 start);
@@ -31,14 +31,14 @@ public:
     bool AtEnd();
 
     void Parse();
-    List<String8> GetAsm();
+    List<String> GetAsm();
 
-    void CreateLabel(u32 address, String8 name);
+    void CreateLabel(u32 address, String name);
 
     u32 GetCurrentInstBytes();
 
     MipsInstruction Decode();
-    String8 GetCurrentAsm();
+    String GetCurrentAsm();
 
 private:
     ByteArray data;

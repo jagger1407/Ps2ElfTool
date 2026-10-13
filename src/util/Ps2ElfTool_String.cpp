@@ -50,7 +50,11 @@ bool _ztcmp8(const char* str1, const char* str2)
 }
 
 u32 _ztcopy8(char* dest, const char* src) {
-    if (dest == nullptr || src == nullptr) return 0;
+    if (dest == nullptr) return 0;
+    if (src == nullptr) {
+        *dest = 0x00;
+        return 0;
+    }
     const char* start = src;
     while (*src != 0x00) {
         *dest = *src;
@@ -116,26 +120,26 @@ u64 _powersHex[] = {
     0x1000000000000000
 };
 
-String8::String8()
+String::String()
 {
     this->ptr = nullptr;
     this->len = 0;
 }
 
-String8::String8(const char* cstr)
+String::String(const char* cstr)
 {
     this->len = _ztlen8(cstr);
     this->ptr = new char[this->len+1];
     _ztcopy8(this->ptr, cstr);
 }
-String8::String8(const char* cstr, u32 len)
+String::String(const char* cstr, u32 len)
 {
     this->len = len;
     this->ptr = new char[this->len+1];
     this->ptr[this->len] = 0x00;
     NCopy(this->ptr, (void*)cstr, this->len);
 }
-String8::String8(ByteArray& ba)
+String::String(ByteArray& ba)
 {
     if (ba.Cptr() == nullptr) {
         this->ptr = nullptr;
@@ -147,7 +151,7 @@ String8::String8(ByteArray& ba)
     this->ptr[this->len] = 0x00;
     NCopy(this->ptr, ba.Cptr(), this->len);
 }
-String8::String8(const String8& str)
+String::String(const String& str)
 {
     this->len = str.len;
     this->ptr = new char[this->len + 1];
@@ -155,7 +159,7 @@ String8::String8(const String8& str)
 }
 
 
-String8::~String8()
+String::~String()
 {
     this->len = 0;
     if(this->ptr) {
@@ -165,7 +169,7 @@ String8::~String8()
 }
 
 
-String8& String8::operator=(const char* str)
+String& String::operator=(const char* str)
 {
     if(this->ptr) {
         delete[] this->ptr;
@@ -180,7 +184,7 @@ String8& String8::operator=(const char* str)
     return *this;
 }
 
-String8& String8::operator=(String8&& str)
+String& String::operator=(String&& str)
 {
     if(this->ptr) {
         delete[] this->ptr;
@@ -195,7 +199,7 @@ String8& String8::operator=(String8&& str)
     return *this;
 }
 
-String8& String8::operator=(ByteArray ba)
+String& String::operator=(ByteArray ba)
 {
     if (this->ptr) {
         delete[] this->ptr;
@@ -211,7 +215,7 @@ String8& String8::operator=(ByteArray ba)
     return *this;
 }
 
-String8& String8::operator=(const String8& str)
+String& String::operator=(const String& str)
 {
     if (this->ptr) {
         delete[] this->ptr;
@@ -226,7 +230,7 @@ String8& String8::operator=(const String8& str)
     return *this;
 }
 
-String8& String8::operator+=(const char* str)
+String& String::operator+=(const char* str)
 {
     if(!str) return *this;
 
@@ -244,7 +248,7 @@ String8& String8::operator+=(const char* str)
     return *this;
 }
 
-String8& String8::operator+=(String8& str)
+String& String::operator+=(String& str)
 {
     *this += str.ptr;
 
@@ -252,56 +256,56 @@ String8& String8::operator+=(String8& str)
 }
 
 
-String8& String8::operator+=(String8&& str)
+String& String::operator+=(String&& str)
 {
     *this += str.ptr;
 
     return *this;
 }
 
-bool String8::operator==(const char* str)
+bool String::operator==(const char* str)
 {
     return _ztcmp8(this->ptr, str);
 }
-bool String8::operator==(String8& str)
+bool String::operator==(String& str)
 {
     return _ztcmp8(this->ptr, str.ptr);
 }
 
-char& String8::operator[](u32 index)
+char& String::operator[](u32 index)
 {
     return this->ptr[index];
 }
 
-String8 operator+(String8 left, const char* right)
+String operator+(String left, const char* right)
 {
     left += right;
     return left;
 }
-String8 operator+(const char* left, String8 right)
+String operator+(const char* left, String right)
 {
-    String8 result(left);
+    String result(left);
     result += right;
     return result;
 }
 
-String8 String8::Substring(u64 start)
+String String::Substring(u64 start)
 {
-    return String8(this->ptr + start);
+    return String(this->ptr + start);
 }
 
-String8 String8::Substring(u64 start, u64 len)
+String String::Substring(u64 start, u64 len)
 {
-    return String8(this->ptr + start, len);
+    return String(this->ptr + start, len);
 }
 
-char* String8::Cstr() const { return this->ptr; }
-u32 String8::Length() const { return this->len; }
+char* String::Cstr() const { return this->ptr; }
+u32 String::Length() const { return this->len; }
 
-Array<String8> String8::Split(const char* separator)
+Array<String> String::Split(const char* separator)
 {
     u32 size = _ztcnt8(this->ptr, separator) + 1;
-    Array<String8> result(size);
+    Array<String> result(size);
 
     u64 idx = 0;
 
@@ -311,23 +315,23 @@ Array<String8> String8::Split(const char* separator)
     const char* start = cur;
     while(*cur != 0x00) {
         if(*cur == *separator && NCompare((u8*)cur, (u8*)separator, seplen)) {
-            result[idx++] = String8(start, cur - start);
+            result[idx++] = String(start, cur - start);
             start = cur + seplen;
         }
         cur++;
     }
-    result[idx] = String8(start, cur - start);
+    result[idx] = String(start, cur - start);
 
     return result;
 }
-Array<String8> String8::Split(String8& separator)
+Array<String> String::Split(String& separator)
 {
     return this->Split(separator.ptr);
 }
 
-String8 String8::ToUpper()
+String String::ToUpper()
 {
-    String8 result(*this);
+    String result(*this);
     for (int i = 0; i < result.len; i++) {
         if (result.ptr[i] >= 'a' && result.ptr[i] <= 'z') {
             result.ptr[i] = 'A' + (result.ptr[i] - 'a');
@@ -335,9 +339,9 @@ String8 String8::ToUpper()
     }
     return result;
 }
-String8 String8::ToLower()
+String String::ToLower()
 {
-    String8 result(*this);
+    String result(*this);
     for (int i = 0; i < result.len; i++) {
         if (result.ptr[i] >= 'A' && result.ptr[i] <= 'Z') {
             result.ptr[i] = 'a' + (result.ptr[i] - 'A');
@@ -346,7 +350,7 @@ String8 String8::ToLower()
     return result;
 }
 
-bool String8::StartsWith(String8 str)
+bool String::StartsWith(String str)
 {
     if (this->len < str.len || str.len == 0) return false;
     if (this->ptr == nullptr || str.ptr == nullptr) return false;
@@ -356,7 +360,7 @@ bool String8::StartsWith(String8 str)
     }
     return true;
 }
-bool String8::EndsWith(String8 str)
+bool String::EndsWith(String str)
 {
     if (this->len < str.len || str.len == 0) return false;
     if (this->ptr == nullptr || str.ptr == nullptr) return false;
@@ -367,18 +371,18 @@ bool String8::EndsWith(String8 str)
     return true;
 }
 
-bool String8::IsEmpty() 
+bool String::IsEmpty()
 {
     if (this->ptr == nullptr || this->len == 0) return true;
     return false;
 }
 
-String8 String8::Replace(String8 original, String8 replacement)
+String String::Replace(String original, String replacement)
 {
-    if(original.len == 0) return String8(this->ptr);
-    Array<String8> parts = this->Split(original);
-    if(parts.Size() <= 1) return String8(this->ptr);
-    String8 result(parts[0]);
+    if(original.len == 0) return String(this->ptr);
+    Array<String> parts = this->Split(original);
+    if(parts.Size() <= 1) return String(this->ptr);
+    String result(parts[0]);
     for(int i=1;i<parts.Size();i++) {
         result += replacement;
         result += parts[i];
@@ -386,7 +390,7 @@ String8 String8::Replace(String8 original, String8 replacement)
     return result;
 }
 
-String8 String8::Repeat(int count)
+String String::Repeat(int count)
 {
     if (count == 0) return "";
 
@@ -396,14 +400,14 @@ String8 String8::Repeat(int count)
     for (int i = 0; i < count; i++) {
         NCopy(dest + (i * this->len), src, this->len);
     }
-    return String8(ba);
+    return String(ba);
 }
 
-u64 String8::ToU64()
+u64 String::ToU64()
 {
     u64 val = 0;
     if(StartsWith("0x")) {
-        String8 hexval = Substring(2);
+        String hexval = Substring(2);
         for(int i=0;i<hexval.len;i++) {
             val += _nibble(hexval[hexval.len - 1 - i]) << (i * 4);
         }
@@ -420,7 +424,7 @@ u64 String8::ToU64()
 }
 
 
-String8 String8::Format(const char* fmt, ...)
+String String::Format(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -436,7 +440,7 @@ String8 String8::Format(const char* fmt, ...)
         return "";
     }
 
-    String8 result;
+    String result;
     result.len = len;
     result.ptr = new char[result.len + 1];
 

@@ -38,7 +38,7 @@ const char* EshtNames[] = {
 class Ps2ElfTool {
 
 public:
-    Ps2ElfTool(Array<String8> args);
+    Ps2ElfTool(Array<String> args);
 
     int Run();
 
@@ -56,13 +56,14 @@ public:
 
 private:
     ArgReader args;
-    Array<String8> argarr;
+    Array<String> argarr;
     Elf elf;
     MipsDecoder decoder;
 
+    File infile;
     File outfile;
 
-    void Print(String8 str);
+    void Print(String str);
 };
 
 #endif // PS2ELFTOOL_H

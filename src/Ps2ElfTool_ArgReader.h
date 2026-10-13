@@ -6,48 +6,36 @@
 #include "util/Ps2ElfTool_Array.h"
 #include "util/Ps2ElfTool_String.h"
 
-typedef struct {
-	String8 arg[2];
-	bool enabled;
-	bool hasValue;
-	String8 value;
-} Argument;
-
 typedef enum {
-	ARG_VERBOSE,
-	ARG_HELP,
-	ARG_INPUT,
-	ARG_OUTPUT,
-	ARG_RANGE
-} ArgumentType;
-
-typedef enum {
-	RUN_NONE,
+	RUN_ERROR,
 	RUN_SECTION_LIST,
 	RUN_SECTION_INFO,
 	RUN_SECTION_EXPORT,
 	RUN_SECTION_DISASM,
 	RUN_LDGEN,
-	RUN_DISASM
+	RUN_DISASM,
 } RunType;
-
-extern Argument g_Args[];
 
 class ArgReader {
 public:
-	ArgReader();
-	ArgReader(Array<String8> args);
+	ArgReader(Array<String>* args);
 
-	Argument GetArg(ArgumentType type);
-	RunType GetRunType();
-
-	bool Failed();
-	String8 GetFailMessage();
+	bool Help();
+	String PathInput();
+	String PathOutput();
+	String Section();
+	u32 StartLocation();
+	u32 Range();
+	RunType Type();
+	String TypeString();
 
 private:
-	bool failed;
-	String8 failMsg;
-
+	bool help;
+	String inputpath;
+	String outputpath;
+	String section;
+	u32 location;
+	u32 size;
 	RunType type;
 };
 

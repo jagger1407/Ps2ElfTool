@@ -30,38 +30,38 @@ class File
 {
 public:
 	File();
-	File(String8 path, FileOpenMode mode);
+	File(String path, FileOpenMode mode);
 	File(const char* path, FileOpenMode mode);
 
 	~File();
 
-	s32 Open(String8 path, FileOpenMode mode);
+	s32 Open(String path, FileOpenMode mode);
 
 	ByteArray Read(u64 size);
-	Array<String8> ReadLines();
+	Array<String> ReadLines();
 
 	u64 Write(ByteArray ba);
-	u64 Write(String8 str);
-	u64 WriteLine(String8 str);
+	u64 Write(String str);
+	u64 WriteLine(String str);
 
 	void Seek(u64 offset, u32 whence);
 	u64 Tell();
 
-	String8 FileName();
-	String8 Path();
+	String FileName();
+	String Path();
 	FileOpenMode OpenMode();
 
 	bool IsOpen();
 
 	void Close();
 
-	static String8 GetAbsolutePath(const String8& path);
+	static String GetAbsolutePath(const String& path);
 
 	File& operator=(File f);
 
 private:
-	String8 path;
-	String8 name;
+	String path;
+	String name;
 	u64 size;
 	u8* buffer;
 	FileOpenMode openmode;

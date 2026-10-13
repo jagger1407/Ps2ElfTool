@@ -5,52 +5,52 @@
 #include "Ps2ElfTool_Array.h"
 #include "Ps2ElfTool_ByteArray.h"
 
-class String8
+class String
 {
 public:
-	String8();
-	String8(const char* cstr);
-	String8(const char* cstr, u32 len);
-	String8(const String8& str);
-	String8(ByteArray& ba);
-	~String8();
+	String();
+	String(const char* cstr);
+	String(const char* cstr, u32 len);
+	String(const String& str);
+	String(ByteArray& ba);
+	~String();
 
-	String8& operator=(const char* str);
-	String8& operator=(ByteArray ba);
-	String8& operator=(String8&& str);
-	String8& operator=(const String8& str);
+	String& operator=(const char* str);
+	String& operator=(ByteArray ba);
+	String& operator=(String&& str);
+	String& operator=(const String& str);
 
-	String8& operator+=(const char* str);
-	String8& operator+=(String8& str);
-	String8& operator+=(String8&& str);
+	String& operator+=(const char* str);
+	String& operator+=(String& str);
+	String& operator+=(String&& str);
 
 	bool operator==(const char* str);
-	bool operator==(String8& str);
+	bool operator==(String& str);
 
 	char& operator[](u32 index);
 
-	String8 Substring(u64 start);
-	String8 Substring(u64 start, u64 len);
+	String Substring(u64 start);
+	String Substring(u64 start, u64 len);
 
 	char* Cstr() const;
 	u32 Length() const;
 
-	Array<String8> Split(const char* separator);
-	Array<String8> Split(String8& separator);
+	Array<String> Split(const char* separator);
+	Array<String> Split(String& separator);
 
-	String8 ToUpper();
-	String8 ToLower();
+	String ToUpper();
+	String ToLower();
 
 	bool IsEmpty();
 
-	bool StartsWith(String8 str);
-	bool EndsWith(String8 str);
+	bool StartsWith(String str);
+	bool EndsWith(String str);
 
-	String8 Repeat(int count);
+	String Repeat(int count);
 
-	String8 Replace(String8 original, String8 replacement);
+	String Replace(String original, String replacement);
 
-	static String8 Format(const char* fmt, ...);
+	static String Format(const char* fmt, ...);
 
 	u64 ToU64();
 	double ToDouble();
@@ -61,8 +61,8 @@ private:
 
 };
 
-String8 operator+(String8 left, const char* right);
-String8 operator+(const char* left, String8 right);
+String operator+(String left, const char* right);
+String operator+(const char* left, String right);
 
 /*
 class String16

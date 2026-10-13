@@ -6,9 +6,9 @@
 class Console {
 
 public:
-    static void Print(String8 str);
-    static void PrintLine(String8 str);
-    static void Printf(String8 fmt, ...);
+    static void Print(String str);
+    static void PrintLine(String str);
+    static void Printf(String fmt, ...);
 
 private:
 

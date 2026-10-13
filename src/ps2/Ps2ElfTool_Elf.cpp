@@ -30,7 +30,7 @@ void Elf::LoadData(ByteArray data)
     }
     u8* strtbl = data.Cptr() + sections[header.stringTableIdx].header.offsetData;
     for (int i = 0; i < header.numSectHdrs; i++) {
-        sections[i].name = String8((char*)strtbl + sections[i].header.offsetStrTbl);
+        sections[i].name = String((char*)strtbl + sections[i].header.offsetStrTbl);
         if (sections[i].header.type == SHT_NOBITS) {
             sections[i].data = ByteArray(sections[i].header.sizeData);
             NZero(sections[i].data.Cptr(), sections[i].header.sizeData);
@@ -68,7 +68,7 @@ void Elf::LoadFile(File elffile)
 
     for (int i = 0; i < sections.Size(); i++) {
         int idx = sections[i].header.offsetStrTbl;
-        sections[i].name = String8((char*)stdata.Cptr() + idx);
+        sections[i].name = String((char*)stdata.Cptr() + idx);
         elffile.Seek(sections[i].header.offsetData, SEEK_SET);
         sections[i].data = elffile.Read(sections[i].header.sizeData);
     }
@@ -76,15 +76,15 @@ void Elf::LoadFile(File elffile)
 
 bool Elf::Failed() { return this->failed; }
 
-Array<String8> Elf::SectionNames()
+Array<String> Elf::SectionNames()
 {
-    Array<String8> out(sections.Size());
+    Array<String> out(sections.Size());
     for (int i = 0; i < sections.Size(); i++) {
         out[i] = sections[i].name;
     }
     return out;
 }
-String8 Elf::GetSectionName(int idx)
+String Elf::GetSectionName(int idx)
 {
     return sections[idx].name;
 }
@@ -92,7 +92,7 @@ ElfSection Elf::GetSection(int idx)
 {
     return sections[idx];
 }
-ElfSection Elf::GetSection(String8 name)
+ElfSection Elf::GetSection(String name)
 {
     for (int i = 0; i < sections.Size(); i++) {
         if (name == sections[i].name) return sections[i];
@@ -104,7 +104,7 @@ ByteArray Elf::GetSectionData(int idx)
 {
     return sections[idx].data;
 }
-ByteArray Elf::GetSectionData(String8 name)
+ByteArray Elf::GetSectionData(String name)
 {
     for (int i = 0; i < sections.Size(); i++) {
         if (name == sections[i].name) {

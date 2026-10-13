@@ -3,18 +3,22 @@
 const char* g_HelpText[] = {
     "Syntax: Ps2ElfTool <command> [options]\n\n"
     "Available commands:\n"
-    "section list   - lists all sections of an ELF file.\n"
-    "section info   - lists the info of a particular section.\n"
-    "section export - exports the section as binary data.\n"
-    "section disasm - exports the section as assembly code.\n\n"
+    "section list    - lists all sections of an ELF file.\n"
+    "section info    - lists the info of a particular section.\n"
+    "section export  - exports the section as binary data.\n"
+    "section disasm  - exports the section as assembly code.\n\n"
     "Options:\n"
-    "-h / --help    - Shows a helptext describing how to use a command.\n"
-    "-v / --verbose - Prints execution information to the console.\n"
-    "                 Can only be used when --output option is given."
-    "-i / --input   - Specifies the input file.\n"
-    "-o / --output  - Redirects the output into a file.\n"
-    "-r / --range   - For 'section export' and 'section disasm',\n"
-    "                 specifies a range (offset,size).\n",
+    "-h / --help     - Shows a helptext describing how to use a command.\n"
+    "-i / --input    - Specifies the input file.\n"
+    "-o / --output   - Redirects the output into a file.\n"
+    "-S / --section  - Selects the ELF section.\n"
+    "-l / --location - For 'section export' and 'section disasm',\n"
+    "                  specifies a starting offset in the section.\n"
+    "-s / --size     - For 'section export' and 'section disasm',\n"
+    "                  specifies the size (in bytes) to export / disassemble.\n"
+    "-r / --range    - For 'section export' and 'section disasm',\n"
+    "                  specifies a range (location,size).\n"
+    "                  Combines --location and --size.\n",
     
     "Syntax: Ps2ElfTool section list [-i|--input] <ELF filepath> [options]\n"
     "Lists each section of the ELF file.\n"
@@ -36,7 +40,7 @@ const char* g_HelpText[] = {
     "Syntax: Ps2ElfTool section export [-i|--input] <ELF filepath> <section name> [options]\n"
     "Exports a section within the ELF file as binary data.\n",
 
-    "Syntax: Ps2ElfTool section export [-i|--input] <ELF filepath> <section name> [options]\n"
+    "Syntax: Ps2ElfTool section disasm [-i|--input] <ELF filepath> <section name> [options]\n"
     "Exports a section within the ELF file as assembly code.\n",
 
     "Syntax: Ps2ElfTool ldgen [-i|--input] <ELF filepath> [-o|--output]\n"
@@ -46,42 +50,38 @@ const char* g_HelpText[] = {
     "Generates a project folder which disassembles the ELF into its components."
 };
 
-Ps2ElfTool::Ps2ElfTool(Array<String8> args)
+Ps2ElfTool::Ps2ElfTool(Array<String> args) : args(&args)
 {
     this->argarr = args;
-    this->args = ArgReader(argarr);
 }
 
 int Ps2ElfTool::Run()
 {
-    if (args.Failed()) {
-        Console::PrintLine("ERROR: " + this->args.GetFailMessage());
-        return 1;
-    }
-
-    RunType t = args.GetRunType();
-    Argument help = args.GetArg(ARG_HELP);
-    if (help.enabled) {
+    RunType t = args.Type();
+    if (args.Help()) {
         return PrintHelp(t);
     }
 
-    File f(args.GetArg(ARG_INPUT).value.Split(";")[0], FOM_READ);
-    ByteArray elfdata = f.Read(READ_ALL);
+    if(!infile.Open(args.PathInput(), FOM_READ)) {
+        Console::Printf("ERROR: File '%s' couldn't be opened.\n", args.PathInput().Cstr());
+        return 2;
+    }
+    ByteArray elfdata = infile.Read(READ_ALL);
     elf.LoadData(elfdata);
     if (elf.Failed()) {
-        Console::Printf("ERROR: File '%s' is not a valid ELF File.", f.FileName().Cstr());
+        Console::Printf("ERROR: File '%s' is not a valid ELF File.\n", infile.FileName().Cstr());
         return 2;
     }
 
-    if (args.GetArg(ARG_OUTPUT).enabled) {
-        this->outfile = File(args.GetArg(ARG_OUTPUT).value, FOM_WRITE);
+    if (!args.PathOutput().IsEmpty()) {
+        this->outfile.Open(args.PathOutput(), FOM_WRITE);
         if (!this->outfile.IsOpen()) {
-            Console::Printf("ERROR: File '%s' couldn't be opened.\n", args.GetArg(ARG_OUTPUT).value.Cstr());
+            Console::Printf("ERROR: File '%s' couldn't be opened.\n", args.PathOutput().Cstr());
             return 3;
         }
     }
 
-    switch (args.GetRunType()) {
+    switch (args.Type()) {
     case RUN_SECTION_LIST: {
         return SectionList();
     } break;
@@ -115,7 +115,7 @@ int Ps2ElfTool::PrintHelp(RunType type)
     return 0;
 }
 
-void Ps2ElfTool::Print(String8 str)
+void Ps2ElfTool::Print(String str)
 {
     if (!outfile.IsOpen()) {
         Console::PrintLine(str);
@@ -132,16 +132,16 @@ int Ps2ElfTool::SectionList()
         Console::PrintLine("ERROR: This ELF file does not have any sections.");
         return 2;
     }
-    String8 header = "Name                Address       Size";
+    String header = "Name                Address       Size";
     Print(header);
-    String8 line   = "                                  ";
+    String line   = "                                  ";
     for (int i = 0; i < scnt; i++) {
         ElfSection section = elf.GetSection(i);
-        String8 name = section.name;
+        String name = section.name;
         if (name.IsEmpty()) continue;
-        String8 addr = String8::Format("0x%08x", section.header.address);
-        String8 size = String8::Format("%d", section.header.sizeData);
-        String8 curLine = line;
+        String addr = String::Format("0x%08x", section.header.address);
+        String size = String::Format("%d", section.header.sizeData);
+        String curLine = line;
         char* ptr = curLine.Cstr();
 
         if (name.Length() > 16) {
@@ -160,19 +160,19 @@ int Ps2ElfTool::SectionList()
 }
 int Ps2ElfTool::SectionInfo()
 {
-    String8 sname = args.GetArg(ARG_INPUT).value.Split(";")[1];
+    String sname = args.Section();
     ElfSection section = elf.GetSection(sname);
     if (section.name.IsEmpty()) {
         Console::Printf("ERROR: Section '%s' couldn't be found.", sname.Cstr());
         return 2;
     }
-    Print(String8::Format("Information of section %s:", sname.Cstr()));
+    Print(String::Format("Information of section %s:", sname.Cstr()));
     Print("Name:      \"" + section.name + "\"");
-    Print("Address:   " + String8::Format("0x%08x", section.header.address));
-    Print("Offset:    " + String8::Format("0x%08x", section.header.offsetData));
-    Print("Size:      " + String8::Format("0x%08x", section.header.sizeData));
-    Print("Alignment: " + String8::Format("%d", section.header.addralign));
-    String8 tstr;
+    Print("Address:   " + String::Format("0x%08x", section.header.address));
+    Print("Offset:    " + String::Format("0x%08x", section.header.offsetData));
+    Print("Size:      " + String::Format("0x%08x", section.header.sizeData));
+    Print("Alignment: " + String::Format("%d", section.header.addralign));
+    String tstr;
     if (section.header.type > 0x6FFFFFFF) {
         tstr = EshtNames[section.header.type - 0x70000000];
     }
@@ -184,68 +184,62 @@ int Ps2ElfTool::SectionInfo()
 }
 int Ps2ElfTool::SectionExport()
 {
-    String8 sname = args.GetArg(ARG_INPUT).value.Split(";")[1];
+    if(!outfile.IsOpen()) {
+        Console::PrintLine("ERROR: section export requires an output file.");
+        return 1;
+    }
+    String sname = args.Section();
     ElfSection section = elf.GetSection(sname);
     if (section.name.IsEmpty()) {
         Console::Printf("ERROR: Section '%s' couldn't be found.", sname.Cstr());
         return 2;
     }
     ByteArray sectionData = elf.GetSectionData(sname);
-    if (args.GetArg(ARG_RANGE).enabled) {
-        u32 start = atoi(args.GetArg(ARG_RANGE).value.Split(",")[0].Cstr());
-        u32 length = atoi(args.GetArg(ARG_RANGE).value.Split(",")[1].Cstr());
-        ByteArray range = ByteArray(sectionData.Cptr() + start, length);
-        outfile.Write(range);
+    u32 start = args.StartLocation();
+    u32 length = args.Range();
+    if(length == 0) {
+        outfile.Write(sectionData);
     }
     else {
-        outfile.Write(sectionData);
+        ByteArray range = ByteArray(sectionData.Cptr() + start, length);
+        outfile.Write(range);
     }
     return 0;
 }
 int Ps2ElfTool::SectionDisasm()
 {
-    String8 sname = args.GetArg(ARG_INPUT).value.Split(";")[1];
+    String sname = args.Section();
     ElfSection section = elf.GetSection(sname);
     if (section.name.IsEmpty()) {
         Console::Printf("ERROR: Section '%s' couldn't be found.", sname.Cstr());
         return 2;
     }
-    Console::Printf("Disassembling Section %s\n", sname.Cstr());
+    Console::Printf("# Disassembling Section %s\n", sname.Cstr());
     ByteArray sectionData = elf.GetSectionData(sname);
-    if (args.GetArg(ARG_RANGE).enabled) {
-        u64 start = args.GetArg(ARG_RANGE).value.Split(",")[0].ToU64();
-        u64 length = args.GetArg(ARG_RANGE).value.Split(",")[1].ToU64();
+    u32 start = args.StartLocation();
+    u32 length = args.Range();
+    if(length == 0)
+        length = sectionData.Size();
 
-        if(start < section.header.address ||
-           start > (section.header.address + section.header.sizeData)) {
-            Console::Printf("ERROR: Address 0x%08x is outside the range of this section.\n", start);
-            return 3;
-        }
+    if( start < section.header.address ||
+        start > (section.header.address + section.header.sizeData)) {
+        Console::Printf("ERROR: Address 0x%08x is outside the range of this section.\n", start);
+        return 3;
+    }
 
-        ByteArray range = sectionData.Subarray(start - section.header.address, length);
-        decoder.LoadData(range, start);
-    }
-    else {
-        decoder.LoadData(sectionData, section.header.address);
-    }
+    ByteArray range = sectionData.Subarray(start - section.header.address, length);
+    decoder.LoadData(range, start);
+
     decoder.Parse();
-    Console::PrintLine("INFO: Section parsed.");
-    List<String8> lines = decoder.GetAsm();
-    Console::PrintLine("INFO: Section disassembled.");
-    u64 percent = lines.Size() / 100;
-    u32 p = 0;
+    Console::PrintLine("# INFO: Section parsed.");
+    List<String> lines = decoder.GetAsm();
+    Console::PrintLine("# INFO: Section disassembled.");
 
     for (int i = 0; i < lines.Size(); i++) {
-        outfile.WriteLine(lines[i]);
-#if 0
-        if (i % percent == 0) {
-            Console::Printf("%d%% written.\n", p);
-            p++;
-        }
-#endif
+        Print(lines[i]);
     }
 
-    Console::PrintLine("INFO: Section disassembly fully written.");
+    Console::PrintLine("# INFO: Section disassembly fully written.");
 
     return 0;
 }
@@ -264,9 +258,9 @@ int Ps2ElfTool::ElfDisasm()
 
 int main(int argc, char** argv)
 {
-    Array<String8> args(argc);
+    Array<String> args(argc);
     for (int i = 0; i < argc; i++) {
-        args[i] = String8(argv[i]);
+        args[i] = String(argv[i]);
     }
     Ps2ElfTool pet(args);
 

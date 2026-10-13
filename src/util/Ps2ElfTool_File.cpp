@@ -18,14 +18,14 @@ File::File()
     this->name = "";
     this->pos = 0;
 }
-File::File(String8 path, FileOpenMode mode)
+File::File(String path, FileOpenMode mode)
 {
     this->Open(path, mode);
 
 }
 File::File(const char* path, FileOpenMode mode)
 {
-    this->Open(String8(path), mode);
+    this->Open(String(path), mode);
 }
 
 File::~File()
@@ -38,7 +38,7 @@ File::~File()
     }
 }
 
-s32 File::Open(String8 path, FileOpenMode mode)
+s32 File::Open(String path, FileOpenMode mode)
 {
     this->isopen = false;
 
@@ -52,12 +52,12 @@ s32 File::Open(String8 path, FileOpenMode mode)
         this->size = ftell(this->fp) - this->size;
         fseek(this->fp, 0, SEEK_SET);
         this->path = GetAbsolutePath(path);
-        Array<String8> parts = this->path.Split(PATH_SEP);
+        Array<String> parts = this->path.Split(PATH_SEP);
         this->name = parts[parts.Size()-1];
-        return 0;
+        return 1;
     }
     perror("File::Open failed");
-    return -1;
+    return 0;
 }
 
 ByteArray File::Read(u64 size)
@@ -78,10 +78,10 @@ ByteArray File::Read(u64 size)
     return ba;
 }
 
-Array<String8> File::ReadLines()
+Array<String> File::ReadLines()
 {
     if (this->openmode != FOM_READ && this->openmode != FOM_READWRITE)
-        return Array<String8>();
+        return Array<String>();
 
     u64 len = size;
     char* ptr = new char[len+1];
@@ -89,7 +89,7 @@ Array<String8> File::ReadLines()
     fseek(this->fp, 0, SEEK_SET);
     fread(ptr, 1, len, this->fp);
     pos = len;
-    String8 data(ptr);
+    String data(ptr);
     data = data.Replace("\r", "");
     return data.Split("\n");
 }
@@ -104,7 +104,7 @@ u64 File::Write(ByteArray ba)
     u64 written = fwrite(ba.Cptr(), 1, ba.Size(), this->fp);
     return written;
 }
-u64 File::Write(String8 str)
+u64 File::Write(String str)
 {
     if (this->openmode != FOM_WRITE && this->openmode != FOM_READWRITE)
         return 0;
@@ -114,7 +114,7 @@ u64 File::Write(String8 str)
     u64 written = fwrite(str.Cstr(), 1, str.Length(), this->fp);
     return written;
 }
-u64 File::WriteLine(String8 str)
+u64 File::WriteLine(String str)
 {
     if (this->openmode != FOM_WRITE && this->openmode != FOM_READWRITE)
         return 0;
@@ -138,20 +138,20 @@ u64 File::Tell()
     return ftell(this->fp);
 }
 
-String8 File::FileName()
+String File::FileName()
 {
-    if (!this->isopen) return String8();
+    if (!this->isopen) return String();
     return this->name;
 }
-String8 File::Path()
+String File::Path()
 {
-    if (!this->isopen) return String8();
+    if (!this->isopen) return String();
     return this->path;
 }
 
 FileOpenMode File::OpenMode() { return this->openmode; }
 
-String8 File::GetAbsolutePath(const String8& path) {
+String File::GetAbsolutePath(const String& path) {
     char real[PATH_MAXLEN];
     NZero(real, PATH_MAXLEN);
 #ifdef _WIN32
@@ -159,7 +159,7 @@ String8 File::GetAbsolutePath(const String8& path) {
 #elif __linux__
     realpath(path.Cstr(), real);
 #endif
-    return String8(real);
+    return String(real);
 }
 
 File& File::operator=(File f)

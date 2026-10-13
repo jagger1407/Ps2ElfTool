@@ -10,24 +10,24 @@
 #define BRANCH(pc, off) ((pc + 4) + (((s32)off) << 2))
 #define JUMP(pc, target) (((pc + 4) & 0xF0000000 ) | ((s32)target << 2))
 
-String8 _immediate(u16 value)
+String _immediate(u16 value)
 {
     if(value == 0x8000) return "0x8000";
     if(value & 0x8000) {
-        return String8::Format("-0x%04x", (s16)((~value) + 1));
+        return String::Format("-0x%04x", (s16)((~value) + 1));
     }
-    return String8::Format("0x%04x", value);
+    return String::Format("0x%04x", value);
 }
 
-String8 _getMask(MipsInstruction* inst) {
+String _getMask(MipsInstruction* inst) {
     u32 dest = inst->args[MIPS_ARG_RS].value & 0x0F;
-    String8 mask = "";
+    String mask = "";
     if(dest & 0b1000) mask += "x";
     if(dest & 0b0100) mask += "y";
     if(dest & 0b0010) mask += "z";
     if(dest & 0b0001) mask += "w";
 
-    return String8::Format("%s.%s", inst->mnemonic, mask.Cstr());
+    return String::Format("%s.%s", inst->mnemonic, mask.Cstr());
 }
 
 MipsDecoder::MipsDecoder()
@@ -94,17 +94,17 @@ void MipsDecoder::Parse()
         if (inst.layout == OL_TARGET) {
             u32 addr = JUMP(pc, inst.args[MIPS_ARG_TARGET].value);
             AsmLabel lbl;
-            if (String8(inst.mnemonic).ToLower() == "jal")
-                lbl.name = String8::Format("FUN_%08x", addr);
+            if (String(inst.mnemonic).ToLower() == "jal")
+                lbl.name = String::Format("FUN_%08x", addr);
             else
-                lbl.name = String8::Format("LAB_%08x", addr);
+                lbl.name = String::Format("LAB_%08x", addr);
             lbl.address = addr;
             labels.Add(lbl);
         }
         else if (inst.layout == OL_R_TARGET || inst.layout == OL_RR_TARGET) {
             u32 addr = BRANCH(pc, (s16)inst.args[MIPS_ARG_IMM].value);
             AsmLabel lbl;
-            lbl.name = String8::Format("LAB_%08x", addr);
+            lbl.name = String::Format("LAB_%08x", addr);
             lbl.address = addr;
             labels.Add(lbl);
         }
@@ -140,9 +140,9 @@ MipsInstruction MipsDecoder::DecodeInstruction(u32 instruction)
     return inst;
 }
 
-String8 MipsDecoder::GetInstructionAsm(u32 pc, MipsInstruction* inst)
+String MipsDecoder::GetInstructionAsm(u32 pc, MipsInstruction* inst)
 {
-    String8 out = "";
+    String out = "";
 
     if (inst->type == ITYPE_INVALID) {
         out = "";
@@ -155,143 +155,143 @@ String8 MipsDecoder::GetInstructionAsm(u32 pc, MipsInstruction* inst)
         } break;
 
         case OL_R: {
-            out = String8::Format("%s $%s", inst->mnemonic, GPREG(MIPS_ARG_RS));
+            out = String::Format("%s $%s", inst->mnemonic, GPREG(MIPS_ARG_RS));
         } break;
 
         case OL_RR: {
             if (inst->args[MIPS_ARG_RD].value == 31) {
-                out = String8::Format("%s $%s", inst->mnemonic, GPREG(MIPS_ARG_RS));
+                out = String::Format("%s $%s", inst->mnemonic, GPREG(MIPS_ARG_RS));
             } else {
-                out = String8::Format("%s $%s, $%s", inst->mnemonic, GPREG(MIPS_ARG_RD), GPREG(MIPS_ARG_RS));
+                out = String::Format("%s $%s, $%s", inst->mnemonic, GPREG(MIPS_ARG_RD), GPREG(MIPS_ARG_RS));
             }
         } break;
 
         case OL_RI: { // Used for LUI ($rt, imm)
-            out = String8::Format("%s $%s, 0x%04x", inst->mnemonic, GPREG(MIPS_ARG_RT), inst->args[MIPS_ARG_IMM].value);
+            out = String::Format("%s $%s, 0x%04x", inst->mnemonic, GPREG(MIPS_ARG_RT), inst->args[MIPS_ARG_IMM].value);
         } break;
 
         case OL_RSI: { // Used for MTSAH / MTSAB ($rs, imm)
-            out = String8::Format("%s $%s, %s", inst->mnemonic, GPREG(MIPS_ARG_RS), _immediate((u16)inst->args[MIPS_ARG_IMM].value).Cstr());
+            out = String::Format("%s $%s, %s", inst->mnemonic, GPREG(MIPS_ARG_RS), _immediate((u16)inst->args[MIPS_ARG_IMM].value).Cstr());
         } break;
 
         case OL_RRR: {
-            out = String8::Format("%s $%s, $%s, $%s", inst->mnemonic,
+            out = String::Format("%s $%s, $%s, $%s", inst->mnemonic,
                                   GPREG(MIPS_ARG_RD), GPREG(MIPS_ARG_RS), GPREG(MIPS_ARG_RT));
         } break;
 
         case OL_RFR: { // mtc1 / mfc1 (\(rt = GPR,\)fs = FPR)
-            out = String8::Format("%s  $%s, $%s", inst->mnemonic,
+            out = String::Format("%s  $%s, $%s", inst->mnemonic,
                                   GPREG(MIPS_ARG_RT), FPREG(MIPS_ARG_FS));
         } break;
 
         case OL_FRFR: { // cvt.s, mov.s, sqrt.s (\(fd,\)fs)
-            out = String8::Format("%s $%s, $%s", inst->mnemonic,
+            out = String::Format("%s $%s, $%s", inst->mnemonic,
                                   FPREG(MIPS_ARG_FD), FPREG(MIPS_ARG_FS));
         } break;
 
         case OL_FRFRFR: { // add.s, sub.s, mul.s (\(fd,\)fs, $ft)
-            out = String8::Format("%s $%s, $%s, $%s", inst->mnemonic,
+            out = String::Format("%s $%s, $%s, $%s", inst->mnemonic,
                                   FPREG(MIPS_ARG_FD), FPREG(MIPS_ARG_FS), FPREG(MIPS_ARG_FT));
         } break;
 
         case OL_RVR: { // qmtc2 / qmfc2 (\(rt = GPR,\)vf = Vector Reg)
-            out = String8::Format("%s $%s, $%s", inst->mnemonic,
+            out = String::Format("%s $%s, $%s", inst->mnemonic,
                                   GPREG(MIPS_ARG_RT), VFPREG(MIPS_ARG_RD));
         } break;
 
         case OL_VRVR: {
-            out = String8::Format("%s $%s, $%s", _getMask(inst).Cstr(),
+            out = String::Format("%s $%s, $%s", _getMask(inst).Cstr(),
                                   VFPREG(MIPS_ARG_FS), VFPREG(MIPS_ARG_FT));
         } break;
 
         case OL_AVRVR: {
-            if(String8(inst->mnemonic).EndsWith("i")) {
-                out = String8::Format("%s $ACC, $%s, $I", _getMask(inst).Cstr(),
+            if(String(inst->mnemonic).EndsWith("i")) {
+                out = String::Format("%s $ACC, $%s, $I", _getMask(inst).Cstr(),
                                       VFPREG(MIPS_ARG_FS));
             }
-            else if(String8(inst->mnemonic).EndsWith("q")) {
-                out = String8::Format("%s $ACC, $%s, $Q", _getMask(inst).Cstr(),
+            else if(String(inst->mnemonic).EndsWith("q")) {
+                out = String::Format("%s $ACC, $%s, $Q", _getMask(inst).Cstr(),
                                       VFPREG(MIPS_ARG_FS));
             }
             else
-                out = String8::Format("%s $ACC, $%s, $%s", _getMask(inst).Cstr(),
+                out = String::Format("%s $ACC, $%s, $%s", _getMask(inst).Cstr(),
                                   VFPREG(MIPS_ARG_FS), VFPREG(MIPS_ARG_FT));
         } break;
 
         case OL_VRVRVR: {
             // Check if mnemonic ends with 'i' (vaddi, vmaddi, etc.)
-            if (String8(inst->mnemonic).EndsWith("i")) {
-                out = String8::Format("%s $%s, $%s, $I", _getMask(inst).Cstr(),
+            if (String(inst->mnemonic).EndsWith("i")) {
+                out = String::Format("%s $%s, $%s, $I", _getMask(inst).Cstr(),
                                       VFPREG(MIPS_ARG_FD), VFPREG(MIPS_ARG_FS));
             }
             // Check if mnemonic ends with 'q' (vaddq, vmulq, etc.)
-            else if (String8(inst->mnemonic).EndsWith("q")) {
-                out = String8::Format("%s $%s, $%s, $Q", _getMask(inst).Cstr(),
+            else if (String(inst->mnemonic).EndsWith("q")) {
+                out = String::Format("%s $%s, $%s, $Q", _getMask(inst).Cstr(),
                                       VFPREG(MIPS_ARG_FD), VFPREG(MIPS_ARG_FS));
             }
             // Standard 3-vector operation
             else {
-                out = String8::Format("%s $%s, $%s, $%s", _getMask(inst).Cstr(),
+                out = String::Format("%s $%s, $%s, $%s", _getMask(inst).Cstr(),
                                       VFPREG(MIPS_ARG_FD), VFPREG(MIPS_ARG_FS), VFPREG(MIPS_ARG_FT));
             }
         } break;
 
         case OL_RC0: { // mfc0 / mtc0 (\(rt = GPR,\)rd = CP0 Reg)
-            out = String8::Format("%s $%s, $%s", inst->mnemonic,
+            out = String::Format("%s $%s, $%s", inst->mnemonic,
                                   GPREG(MIPS_ARG_RT), COP0REG(MIPS_ARG_RD));
         } break;
 
         case OL_RC1: { // cfc1 / ctc1 (\(rt = GPR,\)fcr = FPC Reg)
-            out = String8::Format("%s $%s, $%s", inst->mnemonic,
+            out = String::Format("%s $%s, $%s", inst->mnemonic,
                                   GPREG(MIPS_ARG_RT), COP1REG(MIPS_ARG_RD));
         } break;
 
         case OL_RC2: { // cfc2 / ctc2 (\(rt = GPR,\)vi = VU0 Control Reg)
-            out = String8::Format("%s $%s, $%s", inst->mnemonic,
+            out = String::Format("%s $%s, $%s", inst->mnemonic,
                                   GPREG(MIPS_ARG_RT), COP2REG(MIPS_ARG_RD));
         } break;
 
         case OL_RRI: {
-            out = String8::Format("%s $%s, $%s, 0x%04x", inst->mnemonic,
+            out = String::Format("%s $%s, $%s, 0x%04x", inst->mnemonic,
                                   GPREG(MIPS_ARG_RT), GPREG(MIPS_ARG_RS), inst->args[MIPS_ARG_IMM].value);
         } break;
 
         case OL_RR_OFFSET: {
-            out = String8::Format("%s $%s, %s($%s)", inst->mnemonic,
+            out = String::Format("%s $%s, %s($%s)", inst->mnemonic,
                                   GPREG(MIPS_ARG_RT), _immediate((u16)inst->args[MIPS_ARG_IMM].value).Cstr(), GPREG(MIPS_ARG_RS));
         } break;
 
         case OL_FRR_OFFSET: {
-            out = String8::Format("%s $%s, %s($%s)", inst->mnemonic,
+            out = String::Format("%s $%s, %s($%s)", inst->mnemonic,
                                   FPREG(MIPS_ARG_RT), _immediate((u16)inst->args[MIPS_ARG_IMM].value).Cstr(), GPREG(MIPS_ARG_RS));
         } break;
 
         case OL_VRR_OFFSET: {
-            out = String8::Format("%s $%s, %s($%s)", inst->mnemonic,
+            out = String::Format("%s $%s, %s($%s)", inst->mnemonic,
                                   VFPREG(MIPS_ARG_RT), _immediate((u16)inst->args[MIPS_ARG_IMM].value).Cstr(), GPREG(MIPS_ARG_RS));
         } break;
 
         case OL_RR_TARGET: {
-            out = String8::Format("%s $%s, $%s, 0x%08x", inst->mnemonic,
+            out = String::Format("%s $%s, $%s, 0x%08x", inst->mnemonic,
                                   GPREG(MIPS_ARG_RS), GPREG(MIPS_ARG_RT), BRANCH(pc, (s16)inst->args[MIPS_ARG_IMM].value));
         } break;
 
         case OL_R_TARGET: {
-            out = String8::Format("%s $%s, 0x%08x", inst->mnemonic,
+            out = String::Format("%s $%s, 0x%08x", inst->mnemonic,
                                   GPREG(MIPS_ARG_RS), BRANCH(pc, (s16)inst->args[MIPS_ARG_IMM].value));
         } break;
 
         case OL_TARGET: {
-            out = String8::Format("%s 0x%08x", inst->mnemonic, JUMP(pc, inst->args[MIPS_ARG_TARGET].value));
+            out = String::Format("%s 0x%08x", inst->mnemonic, JUMP(pc, inst->args[MIPS_ARG_TARGET].value));
         } break;
 
         case OL_RR_SHIFT: {
-            out = String8::Format("%s $%s, $%s, %d", inst->mnemonic,
+            out = String::Format("%s $%s, $%s, %d", inst->mnemonic,
                                   GPREG(MIPS_ARG_RD), GPREG(MIPS_ARG_RT), inst->args[MIPS_ARG_IMM].value);
         } break;
 
         case OL_HINT: {
-            out = String8::Format("%s %d, %s($%s)", inst->mnemonic,
+            out = String::Format("%s %d, %s($%s)", inst->mnemonic,
                 inst->args[MIPS_ARG_RT].value, _immediate((u16)inst->args[MIPS_ARG_IMM].value).Cstr(), GPREG(MIPS_ARG_RS));
         } break;
 
@@ -304,7 +304,7 @@ String8 MipsDecoder::GetInstructionAsm(u32 pc, MipsInstruction* inst)
                 out = "sync.p";
             }
             else {
-                out = String8::Format("%s 0x%02x", inst->mnemonic, stype);
+                out = String::Format("%s 0x%02x", inst->mnemonic, stype);
             }
         } break;
 
@@ -321,42 +321,42 @@ u32 MipsDecoder::GetCurrentInstBytes()
     return *ip;
 }
 
-String8 MipsDecoder::GetCurrentAsm()
+String MipsDecoder::GetCurrentAsm()
 {
     MipsInstruction decoded = Decode();
     MipsInstruction* inst = &decoded;
-    String8 out = "";
+    String out = "";
     switch (inst->layout) {
     case OL_RR_TARGET: {
         u32 target = BRANCH(pc, (s16)inst->args[MIPS_ARG_IMM].value);
         s64 ilbl = findLabel(target);
         if (ilbl >= 0) {
-            out = String8::Format("%s $%s, $%s, %s", inst->mnemonic,
+            out = String::Format("%s $%s, $%s, %s", inst->mnemonic,
                 GPREG(MIPS_ARG_RS), GPREG(MIPS_ARG_RT), labels[ilbl].name.Cstr());
         }
         else
-            out = String8::Format("%s $%s, $%s, 0x%08x", inst->mnemonic,
+            out = String::Format("%s $%s, $%s, 0x%08x", inst->mnemonic,
                 GPREG(MIPS_ARG_RS), GPREG(MIPS_ARG_RT), target);
     } break;
     case OL_R_TARGET: {
         u32 target = BRANCH(pc, (s16)inst->args[MIPS_ARG_IMM].value);
         s64 ilbl = findLabel(target);
         if (ilbl >= 0) {
-            out = String8::Format("%s $%s, %s", inst->mnemonic,
+            out = String::Format("%s $%s, %s", inst->mnemonic,
                 GPREG(MIPS_ARG_RS), labels[ilbl].name.Cstr());
         }
         else
-            out = String8::Format("%s $%s, 0x%08x", inst->mnemonic,
+            out = String::Format("%s $%s, 0x%08x", inst->mnemonic,
                 GPREG(MIPS_ARG_RS), target);
     } break;
     case OL_TARGET: {
         u32 target = JUMP(pc, inst->args[MIPS_ARG_TARGET].value);
         s64 ilbl = findLabel(target);
         if (ilbl >= 0) {
-            out = String8::Format("%s %s", inst->mnemonic, labels[ilbl].name.Cstr());
+            out = String::Format("%s %s", inst->mnemonic, labels[ilbl].name.Cstr());
         }
         else
-            out = String8::Format("%s 0x%08x", inst->mnemonic, inst->args[MIPS_ARG_TARGET]);
+            out = String::Format("%s 0x%08x", inst->mnemonic, inst->args[MIPS_ARG_TARGET]);
     } break;
     default: {
         return GetInstructionAsm(this->pc, inst);
@@ -365,9 +365,9 @@ String8 MipsDecoder::GetCurrentAsm()
     return out;
 }
 
-List<String8> MipsDecoder::GetAsm()
+List<String> MipsDecoder::GetAsm()
 {
-    List<String8> out;
+    List<String> out;
     if (data.Cptr() == nullptr) return out;
 
     u64 tenth = (data.Size()/4) / 100;
@@ -381,9 +381,9 @@ List<String8> MipsDecoder::GetAsm()
         if (ilbl >= 0) {
             out.Add(labels[ilbl].name + ":");
         }
-        String8 instasm = GetCurrentAsm();
+        String instasm = GetCurrentAsm();
         if(instasm.Length() == 0) {
-            out.Add(String8::Format("    Unknown Instruction (pc = 0x%08x , inst = 0x%08x)", pc, *ip));
+            out.Add(String::Format("    Unknown Instruction (pc = 0x%08x , inst = 0x%08x)", pc, *ip));
         }
         out.Add("    " + instasm);
 #if 0
@@ -409,7 +409,7 @@ s64 MipsDecoder::findLabel(u32 address)
     return -1;
 }
 
-void MipsDecoder::CreateLabel(u32 address, String8 name)
+void MipsDecoder::CreateLabel(u32 address, String name)
 {
     if (this->data.Size() == 0) return;
     for (int i = 0; i < labels.Size(); i++) {

@@ -90,7 +90,7 @@ typedef struct shdr {
 } ElfShdr;
 
 typedef struct esect {
-    String8 name;
+    String name;
     ElfShdr header;
     ByteArray data;
 } ElfSection;
@@ -105,12 +105,12 @@ public:
     void LoadData(ByteArray data);
     void LoadFile(File elffile);
 
-    Array<String8> SectionNames();
-    String8 GetSectionName(int idx);
+    Array<String> SectionNames();
+    String GetSectionName(int idx);
     ElfSection GetSection(int idx);
-    ElfSection GetSection(String8 name);
+    ElfSection GetSection(String name);
     ByteArray GetSectionData(int idx);
-    ByteArray GetSectionData(String8 name);
+    ByteArray GetSectionData(String name);
 
     u32 SectionCount();
     bool Failed();

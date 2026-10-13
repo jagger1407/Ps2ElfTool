@@ -91,6 +91,11 @@ public:
 		return *this;
 	}
 
+	const T Get(u64 index)
+	{
+		return *(this->ptr + index);
+	}
+
 	T* Cptr()
 	{
 		return this->cur;
