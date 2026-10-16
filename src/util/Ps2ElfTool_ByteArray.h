@@ -35,6 +35,8 @@ public:
 	void MoveToStart();
 	void MoveToEnd();
 
+	void Initialize(u64 size);
+
 	ByteArray Subarray(u64 start, u64 length);
 
 private:
