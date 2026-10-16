@@ -47,34 +47,37 @@ J-Type (Jump)
 #define MIPS_ARG_FD MIPS_ARG_SHAMT
 
 typedef enum oplayout {
-    OL_NONE,       // NOP, SYSCALL
-    OL_R,          // jr $rs
-    OL_RR,         // jalr $rd, $rs
-    OL_RFR,        // mtc1 $rt, $rs
-    OL_FRFR,       // cvt.s $rd, $rs
-    OL_FRFRFR,     // add.s $fd, $fs, $ft
-    OL_RVR,        // qmtc2 $rt, $vf
-    OL_VRVR,       // vadda $vf01, $vf02
-    OL_VRVRVR,     // vadd.xyzw vf1, vf0, vf2
-    OL_AVRVR,      // vmulax.xyzw $ACC, $vf28, $vf5
-    OL_VIVII,      // viaddi $vi01, $vi02, imm
-    OL_VIVIVI,     // viadd $vi01, $vi02, $vi03
-    OL_RI,         // lui $rt, imm
-    OL_RSI,        // mtsah $rs, imm
-    OL_RC0,        // mfc0 $rt, $rd
-    OL_RC1,
-    OL_RC2,
-    OL_RRR,        // addu $rd, $rs, $rt   (R-Type)
-    OL_RRI,        // addiu $rt, $rs, imm  (I-Type)
-    OL_RR_OFFSET,  // sw $rt, imm($rs)     (I-Type Memory)
-    OL_FRR_OFFSET, // swc1 $rt, imm($rs)     (I-Type Memory)
-    OL_VRR_OFFSET, // swc2 $rt, imm($rs)
-    OL_RR_TARGET,  // beq $rs, $rt, target (I-Type Branch)
-    OL_R_TARGET,   // blez $rs, target     (I-Type Branch)
-    OL_TARGET,     // j target             (J-Type)
-    OL_RR_SHIFT,   // sll $rd, $rt, shamt  (R-Type Shift)
-    OL_HINT,       // pref
-    OL_SYNC
+    OL_NONE,        // nop, syscall, break
+    OL_RD,          // mflo   $rd
+    OL_RS,          // jr     $rs
+    OL_RD_RS,       // jalr   $rd, $rs
+    OL_RS_RT,       // div    $rs, $rt
+    OL_RD_RT,       // pext5  $rd, $rt
+    OL_RT_RD,       // mfc0   $rt, $rd
+    OL_RD_RT_SA,    // srl    $rd, $rt, SHAMT
+    OL_RD_RT_RS,    // srlv   $rd, $rt, $rs
+    OL_RD_RS_RT,    // and    $rd, $rs, $rt
+    OL_TARGET,      // jal    TARGET
+    OL_RT_RS_IMM,   // addiu  $rt, $rs, IMM
+    OL_RS_RT_IMM,   // beq    $rs, $rt, IMM
+    OL_RS_IMM,      // blez   $rs, IMM
+    OL_RT_IMM,      // lui    $rt, IMM
+    OL_RT_OFFSET,   // lw     $rt, IMM($rs)
+    OL_RT_VD,       // qmtc2  $rt, $vf_rd
+    OL_VT_OFFSET,   // lqc2   $vft, IMM($rs)
+    OL_VD_VS_VT,    // vadd   $vfd, $vfs, $vft
+    OL_VI27,        // vcallmsr
+    OL_VT_VS_IMM,   // viaddi $vif, $vis, imm5
+    OL_ACC_VS_VT,   // vaddax ACC, $vfs, $vft
+    OL_VT_VS,       // vitof0 $vft, $vfs
+    OL_RT_FS,       // mfc1   $rt, $fs
+    OL_FT_OFFSET,   // lwc1   $ft, IMM($rs)
+    OL_FD_FS_FT,    // add.s  $fd, $fs, $ft
+    OL_FD_FS,       // abs.s  $fd, $fs
+    OL_FS_FT,       // c.lt.s $fs, $ft
+    OL_FD_FT,       // sqrt.s $fd, $ft
+    OL_HINT,        // pref   hint, IMM($rs)
+    OL_SYNC         // sync
 } MipsOpLayout;
 
 typedef enum insttype : s32 {
