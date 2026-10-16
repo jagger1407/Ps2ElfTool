@@ -10,6 +10,11 @@ ArgReader::ArgReader(Array<String>* args)
     this->size = 0;
     this->type = RUN_ERROR;
 
+    if(args->Size() <= 1) {
+        this->help = true;
+        return;
+    }
+
     int iArg = 1;
     curArg = args->Get(iArg);
     iArg++;
