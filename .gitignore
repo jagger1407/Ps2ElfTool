@@ -1,13 +1,14 @@
 # code editor stuff
 .vscode/
 *.kdev4
+*.kate-swp
 
 # build stuff
 build/
 *.o
 
 # test stuff
-test/
+testing/
 *.csv
 *.bin
 *.s
