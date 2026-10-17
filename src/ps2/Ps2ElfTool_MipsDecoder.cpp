@@ -168,6 +168,12 @@ List<String> MipsDecoder::GetAsm()
         }
         else {
             line = GetInstructionAsm(inst, pc);
+            // PS2DEV doesn't generate these as matching so I just hardcode the bytes lol
+            // Context: vsqrt doesn't use the fsf field (bits 21-22), so the CPU ignores it.
+            //          Sony puts 0b00 there, PS2DEV puts 0b10 there. Dang.
+            if(line.StartsWith("vsqrt")) {
+                line = String::Format(".word 0x%08x # %s", *ip, line.Cstr());
+            }
             if(line.Length() == 0)
                 line = String::Format(".word 0x%08x", *ip);
         }
@@ -266,7 +272,11 @@ String MipsDecoder::GetInstructionAsm(MipsInstruction* inst, u32 pc)
                 out = String::Format("%s $%s, %s", inst->mnemonic, GPREG(MIPS_ARG_RS), _immediate((u16)inst->args[MIPS_ARG_IMM].value).Cstr());
         } break;
         case OL_RD_RT_SA: { // Used for sll
-            out = String::Format("%s $%s, $%s, %d", inst->mnemonic,
+            if(inst->args[MIPS_ARG_RS].value != 0) {
+                out = "";
+            }
+            else
+                out = String::Format("%s $%s, $%s, %d", inst->mnemonic,
                                  GPREG(MIPS_ARG_RD), GPREG(MIPS_ARG_RT), inst->args[MIPS_ARG_SHAMT].value);
         } break;
 
@@ -336,13 +346,13 @@ String MipsDecoder::GetInstructionAsm(MipsInstruction* inst, u32 pc)
             out = String::Format("%s $%s, ($%s++)", _getMask(inst).Cstr(), VFPREG(MIPS_ARG_FS), COP2REG(MIPS_ARG_FT));
         } break;
         case OL_VS_VIT_DEC: {
-            out = String::Format("%s $%s, (--$%s)", _getMask(inst).Cstr(), VFPREG(MIPS_ARG_FT), COP2REG(MIPS_ARG_FS));
+            out = String::Format("%s $%s, (--$%s)", _getMask(inst).Cstr(), VFPREG(MIPS_ARG_FS), COP2REG(MIPS_ARG_FT));
         } break;
         case OL_VT_VIS_INC: {
             out = String::Format("%s $%s, ($%s++)", _getMask(inst).Cstr(), VFPREG(MIPS_ARG_FT), COP2REG(MIPS_ARG_FS));
         } break;
         case OL_VT_VIS_DEC: {
-            out = String::Format("%s $%s, (--$%s)", _getMask(inst).Cstr(), VFPREG(MIPS_ARG_FS), COP2REG(MIPS_ARG_FT));
+            out = String::Format("%s $%s, (--$%s)", _getMask(inst).Cstr(), VFPREG(MIPS_ARG_FT), COP2REG(MIPS_ARG_FS));
         } break;
         case OL_VIT_VSF: {
             const char* comp = "xyzw";
@@ -382,11 +392,16 @@ String MipsDecoder::GetInstructionAsm(MipsInstruction* inst, u32 pc)
             else if (name.EndsWith("x") || name.EndsWith("y") ||
                 name.EndsWith("z") || name.EndsWith("w")) {
                 const char* comp = "xyzw";
-            out = String::Format("%s $ACC, $%s, $%s%c", mask.Cstr(),
-                                 VFPREG(MIPS_ARG_FS), VFPREG(MIPS_ARG_FT),
-                                 comp[inst->args[MIPS_ARG_FUNCT].value & 3]);
-                }
+                out = String::Format("%s $ACC, $%s, $%s%c", mask.Cstr(), VFPREG(MIPS_ARG_FS), VFPREG(MIPS_ARG_FT),
+                                      comp[inst->args[MIPS_ARG_FUNCT].value & 3]);
+            }
+            // PS2DEV swaps the arguments JUST for vadda???
+            else if(name == "vadda") {
+                out = String::Format("%s $ACC, $%s, $%s", mask.Cstr(),
+                                     VFPREG(MIPS_ARG_FT), VFPREG(MIPS_ARG_FS));
+            }
             else {
+
                 out = String::Format("%s $ACC, $%s, $%s", mask.Cstr(),
                                      VFPREG(MIPS_ARG_FS), VFPREG(MIPS_ARG_FT));
             }

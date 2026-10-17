@@ -21,7 +21,7 @@ The end goal is to be able to generate a full disassembly project directory that
 
 - The information listings and export of sections as binary data works as intended.
 
-- `section disasm` creates an assemble-able assembly file but currently has some issues/mismatches with the source.<br>
+- `section disasm` creates an assemble-able assembly file that can match if assembling with PS2DEV's `as` assembler.<br>
 Only the `.text` Section and other sections containing regular EE assembly instructions are currently being supported.
 
 - `ldgen` doesn't exist as of yet.

@@ -135,8 +135,8 @@ MipsInstruction g_MipsInstructionsR[] = {
 };
 
 MipsInstruction g_MipsInstructionsMMI[] = {
-    InstMMIType("madd",   OL_RS_RT,    0b000000),
-    InstMMIType("maddu",  OL_RS_RT,    0b000001),
+    InstMMIType("madd",   OL_RD_RS_RT, 0b000000),
+    InstMMIType("maddu",  OL_RD_RS_RT, 0b000001),
     InstNop, //                        0b000010
     InstNop, //                        0b000011
     InstMMIType("plzcw",  OL_RD_RS,    0b000100),
