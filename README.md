@@ -17,6 +17,19 @@ The end goal is to be able to generate a full disassembly project directory that
 
 * **Disassembly Output**: Disassemble sections into MIPS assembly formatted specifically to be reassembled using the PS2DEV assembler.
 
+## Project Status
+
+- The information listings and export of sections as binary data works as intended.
+
+- `section disasm` creates an assemble-able assembly file but currently has some issues/mismatches with the source.<br>
+Only the `.text` Section and other sections containing regular EE assembly instructions are currently being supported.
+
+- `ldgen` doesn't exist as of yet.
+
+- Full ELF Disassembly doesn't work as of yet. 
+
+- No release is out as of yet. Once the disassembly works fully, I will create one.
+
 ## Usage
 
 ```bash
@@ -35,6 +48,8 @@ Ps2ElfTool section disasm <ELF> <section> -o [output_file]
 ```
 
 ## Roadmap & Planned Features
+
+- [ ] **VU microcode disassembly**: Disassemble both EE instructions and VU microcode.
 
 - [ ] **`ldgen` Command**: Automatically generate linker scripts matching the memory layout of a target PS2 ELF.
 
