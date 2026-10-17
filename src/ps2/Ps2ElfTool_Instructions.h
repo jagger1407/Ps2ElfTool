@@ -70,6 +70,15 @@ typedef enum oplayout {
     OL_VT_VS_IMM,   // viaddi $vif, $vis, imm5
     OL_ACC_VS_VT,   // vaddax ACC, $vfs, $vft
     OL_VT_VS,       // vitof0 $vft, $vfs
+    OL_VIT_VSF,     // vmtir  $vit, $vfs<fsf>
+    OL_Q_VTF,       // vsqrt  Q, $vft<ftf>
+    OL_Q_VSF_VTF,   // vdiv,  Q, $vfs<fsf>, $vft<ftf>
+    OL_R_VSF,       // vrinit R, $vfs<fsf>
+    OL_VT_R,        // vrnext R, $vft
+    OL_VS_VIT_INC,  // vsqi   $vfs, ($vit++)
+    OL_VS_VIT_DEC,  // vsqi   $vfs, (--$vit)
+    OL_VT_VIS_INC,  // vlqi   $vft, ($vis++)
+    OL_VT_VIS_DEC,  // vlqi   $vft, (--$vis)
     OL_RT_FS,       // mfc1   $rt, $fs
     OL_FT_OFFSET,   // lwc1   $ft, IMM($rs)
     OL_FD_FS_FT,    // add.s  $fd, $fs, $ft

@@ -217,6 +217,8 @@ int Ps2ElfTool::SectionDisasm()
     Console::Printf("# Disassembling Section %s\n", sname.Cstr());
     ByteArray sectionData = elf.GetSectionData(sname);
     u32 start = args.StartLocation();
+    if(start == 0)
+        start = section.header.address;
     u32 length = args.Range();
     if(length == 0)
         length = sectionData.Size();
@@ -230,8 +232,13 @@ int Ps2ElfTool::SectionDisasm()
     ByteArray range = sectionData.Subarray(start - section.header.address, length);
     decoder.LoadData(range, start);
 
-    decoder.Parse();
+    decoder.AnalyzeLabels();
     Console::PrintLine("# INFO: Section parsed.");
+    Print(".set    noreorder\n"
+          ".set noat\n"
+          ".text\n"
+          ".globl  _start\n"
+          "_start:\n\n");
     List<String> lines = decoder.GetAsm();
     Console::PrintLine("# INFO: Section disassembled.");
 

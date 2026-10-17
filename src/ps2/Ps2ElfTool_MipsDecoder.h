@@ -8,10 +8,12 @@
 #include "Ps2ElfTool_Instructions.h"
 #include "Ps2ElfTool_Registers.h"
 
-typedef struct {
-    u32 address;
-    String name;
-} AsmLabel;
+typedef enum : u8 {
+    LBL_NONE,
+    LBL_LAB,
+    LBL_FUN,
+    LBL_DAT
+} LabelState;
 
 class MipsDecoder
 {
@@ -19,36 +21,25 @@ public:
     MipsDecoder();
     MipsDecoder(ByteArray data, u32 start);
 
-    static MipsInstruction DecodeInstruction(u32 instruction);
-    static String GetInstructionAsm(u32 pc, MipsInstruction* inst);
-
-    void MovePC(u32 address);
     void LoadData(ByteArray data, u32 start);
 
-    int Next();
     void MoveToStart();
-
+    u32 Next();
     bool AtEnd();
 
-    void Parse();
+    void AnalyzeLabels();
+
     List<String> GetAsm();
 
-    void CreateLabel(u32 address, String name);
-
-    u32 GetCurrentInstBytes();
-
-    MipsInstruction Decode();
-    String GetCurrentAsm();
+    static void DecodeInstruction(MipsInstruction* inst, u32 instruction);
+    static String GetInstructionAsm(MipsInstruction* inst, u32 pc);
 
 private:
     ByteArray data;
-    List<AsmLabel> labels;
+    ByteArray lbls;
     u32* ip;
-
     u32 pc;
     u32 start;
-
-    s64 findLabel(u32 address);
 };
 
 #endif

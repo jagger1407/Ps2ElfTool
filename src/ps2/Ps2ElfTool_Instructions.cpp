@@ -23,8 +23,8 @@ MipsInstruction g_MipsInstructionsIJ[] = {
     InstNop, //                       0b010011
     InstIType("beql",  OL_RS_RT_IMM,  0b010100),
     InstIType("bnel",  OL_RS_RT_IMM,  0b010101),
-    InstIType("blezl", OL_RS_RT_IMM,  0b010110),
-    InstIType("bgtzl", OL_RS_RT_IMM,  0b010111),
+    InstIType("blezl", OL_RS_IMM,     0b010110),
+    InstIType("bgtzl", OL_RS_IMM,     0b010111),
     InstIType("daddi", OL_RT_RS_IMM,  0b011000),
     InstIType("daddiu",OL_RT_RS_IMM,  0b011001),
     InstIType("ldl",   OL_RT_OFFSET,  0b011010),
@@ -48,7 +48,7 @@ MipsInstruction g_MipsInstructionsIJ[] = {
     InstIType("sdl",   OL_RT_OFFSET,  0b101100),
     InstIType("sdr",   OL_RT_OFFSET,  0b101101),
     InstIType("swr",   OL_RT_OFFSET,  0b101110),
-    InstIType("cache", OL_RT_OFFSET,  0b101111),
+    InstIType("cache", OL_HINT,       0b101111),
     InstNop, //                       0b110000
     InstIType("lwc1",  OL_FT_OFFSET,  0b110001),
     InstNop, //                       0b110010
@@ -94,8 +94,8 @@ MipsInstruction g_MipsInstructionsR[] = {
     InstRType("dsrav",   OL_RD_RT_RS, 0b010111),
     InstRType("mult",    OL_RD_RS_RT, 0b011000),
     InstRType("multu",   OL_RD_RS_RT, 0b011001),
-    InstRType("div",     OL_RS_RT,    0b011010),
-    InstRType("divu",    OL_RS_RT,    0b011011),
+    InstRType("div",     OL_RD_RS_RT,    0b011010),
+    InstRType("divu",    OL_RD_RS_RT,    0b011011),
     InstNop, //                       0b011100
     InstNop, //                       0b011101
     InstNop, //                       0b011110
@@ -867,118 +867,118 @@ MipsInstruction g_MipsInstructionsCOP2S2[] = {
     InstCOP2Spec2Type("vmsubay",  OL_ACC_VS_VT,   0b0001101),
     InstCOP2Spec2Type("vmsubaz",  OL_ACC_VS_VT,   0b0001110),
     InstCOP2Spec2Type("vmsubaw",  OL_ACC_VS_VT,   0b0001111),
-    InstCOP2Spec2Type("vitof0",   OL_VT_VS,   0b0010000),
-    InstCOP2Spec2Type("vitof4",   OL_VT_VS,   0b0010001),
-    InstCOP2Spec2Type("vitof12",  OL_VT_VS,   0b0010010),
-    InstCOP2Spec2Type("vitof15",  OL_VT_VS,   0b0010011),
-    InstCOP2Spec2Type("vftoi0",   OL_VT_VS,   0b0010100),
-    InstCOP2Spec2Type("vftoi4",   OL_VT_VS,   0b0010101),
-    InstCOP2Spec2Type("vftoi12",  OL_VT_VS,   0b0010110),
-    InstCOP2Spec2Type("vftoi15",  OL_VT_VS,   0b0010111),
+    InstCOP2Spec2Type("vitof0",   OL_VT_VS,       0b0010000),
+    InstCOP2Spec2Type("vitof4",   OL_VT_VS,       0b0010001),
+    InstCOP2Spec2Type("vitof12",  OL_VT_VS,       0b0010010),
+    InstCOP2Spec2Type("vitof15",  OL_VT_VS,       0b0010011),
+    InstCOP2Spec2Type("vftoi0",   OL_VT_VS,       0b0010100),
+    InstCOP2Spec2Type("vftoi4",   OL_VT_VS,       0b0010101),
+    InstCOP2Spec2Type("vftoi12",  OL_VT_VS,       0b0010110),
+    InstCOP2Spec2Type("vftoi15",  OL_VT_VS,       0b0010111),
     InstCOP2Spec2Type("vmulax",   OL_ACC_VS_VT,   0b0011000),
     InstCOP2Spec2Type("vmulay",   OL_ACC_VS_VT,   0b0011001),
     InstCOP2Spec2Type("vmulaz",   OL_ACC_VS_VT,   0b0011010),
     InstCOP2Spec2Type("vmulaw",   OL_ACC_VS_VT,   0b0011011),
-    InstCOP2Spec2Type("vmulaq",   OL_ACC_VS_VT,    0b0011100),
-    InstCOP2Spec2Type("vabs",     OL_VT_VS,   0b0011101),
-    InstCOP2Spec2Type("vmulai",   OL_ACC_VS_VT,    0b0011110),
-    InstCOP2Spec2Type("vclipw",   OL_VT_VS,   0b0011111),
-    InstCOP2Spec2Type("vaddaq",   OL_ACC_VS_VT,    0b0100000),
-    InstCOP2Spec2Type("vmaddaq",  OL_ACC_VS_VT,    0b0100001),
-    InstCOP2Spec2Type("vaddai",   OL_ACC_VS_VT,    0b0100010),
-    InstCOP2Spec2Type("vmaddai",  OL_ACC_VS_VT,    0b0100011),
-    InstCOP2Spec2Type("vsubaq",   OL_ACC_VS_VT,    0b0100100),
-    InstCOP2Spec2Type("vmsubaq",  OL_ACC_VS_VT,    0b0100101),
-    InstCOP2Spec2Type("vsubai",   OL_ACC_VS_VT,    0b0100110),
-    InstCOP2Spec2Type("vmsubai",  OL_ACC_VS_VT,    0b0100111),
+    InstCOP2Spec2Type("vmulaq",   OL_ACC_VS_VT,   0b0011100),
+    InstCOP2Spec2Type("vabs",     OL_VT_VS,       0b0011101),
+    InstCOP2Spec2Type("vmulai",   OL_ACC_VS_VT,   0b0011110),
+    InstCOP2Spec2Type("vclipw",   OL_VT_VS,       0b0011111),
+    InstCOP2Spec2Type("vaddaq",   OL_ACC_VS_VT,   0b0100000),
+    InstCOP2Spec2Type("vmaddaq",  OL_ACC_VS_VT,   0b0100001),
+    InstCOP2Spec2Type("vaddai",   OL_ACC_VS_VT,   0b0100010),
+    InstCOP2Spec2Type("vmaddai",  OL_ACC_VS_VT,   0b0100011),
+    InstCOP2Spec2Type("vsubaq",   OL_ACC_VS_VT,   0b0100100),
+    InstCOP2Spec2Type("vmsubaq",  OL_ACC_VS_VT,   0b0100101),
+    InstCOP2Spec2Type("vsubai",   OL_ACC_VS_VT,   0b0100110),
+    InstCOP2Spec2Type("vmsubai",  OL_ACC_VS_VT,   0b0100111),
     InstCOP2Spec2Type("vadda",    OL_ACC_VS_VT,   0b0101000),
     InstCOP2Spec2Type("vmadda",   OL_ACC_VS_VT,   0b0101001),
     InstCOP2Spec2Type("vmula",    OL_ACC_VS_VT,   0b0101010),
-    InstNop, //                            0b0101011
+    InstNop, //                                   0b0101011
     InstCOP2Spec2Type("vsuba",    OL_ACC_VS_VT,   0b0101100),
     InstCOP2Spec2Type("vmsuba",   OL_ACC_VS_VT,   0b0101101),
     InstCOP2Spec2Type("vopmula",  OL_ACC_VS_VT,   0b0101110),
-    InstCOP2Spec2Type("vnop",     OL_NONE, 0b0101111),
-    InstCOP2Spec2Type("vmove",    OL_VT_VS,   0b0110000),
-    InstCOP2Spec2Type("vmr32",    OL_VT_VS,   0b0110001),
-    InstNop, //                            0b0110010
-    InstNop, //                            0b0110011
-    InstCOP2Spec2Type("vlqi",     OL_VT_VS,   0b0110100),
-    InstCOP2Spec2Type("vsqi",     OL_VT_VS,   0b0110101),
-    InstCOP2Spec2Type("vlqd",     OL_VT_VS,   0b0110110),
-    InstCOP2Spec2Type("vsqd",     OL_VT_VS,   0b0110111),
-    InstCOP2Spec2Type("vdiv",     OL_VT_VS,   0b0111000),
-    InstCOP2Spec2Type("vsqrt",    OL_VT_VS,   0b0111001),
-    InstCOP2Spec2Type("vrsqrt",   OL_VT_VS,   0b0111010),
-    InstCOP2Spec2Type("vwaitq",   OL_NONE, 0b0111011),
-    InstCOP2Spec2Type("vmtir",    OL_VT_VS,   0b0111100),
-    InstCOP2Spec2Type("vmfir",    OL_VT_VS,   0b0111101),
-    InstCOP2Spec2Type("vilwr",    OL_VT_VS,   0b0111110),
-    InstCOP2Spec2Type("viswr",    OL_VT_VS,   0b0111111),
-    InstCOP2Spec2Type("vrnext",   OL_VT_VS,   0b1000000),
-    InstCOP2Spec2Type("vrget",    OL_VT_VS,   0b1000001),
-    InstCOP2Spec2Type("vrinit",   OL_VT_VS,   0b1000010),
-    InstCOP2Spec2Type("vrxor",    OL_VT_VS,   0b1000011),
-    InstNop, //                            0b1000100
-    InstNop, //                            0b1000101
-    InstNop, //                            0b1000110
-    InstNop, //                            0b1000111
-    InstNop, //                            0b1001000
-    InstNop, //                            0b1001001
-    InstNop, //                            0b1001010
-    InstNop, //                            0b1001011
-    InstNop, //                            0b1001100
-    InstNop, //                            0b1001101
-    InstNop, //                            0b1001110
-    InstNop, //                            0b1001111
-    InstNop, //                            0b1010000
-    InstNop, //                            0b1010001
-    InstNop, //                            0b1010010
-    InstNop, //                            0b1010011
-    InstNop, //                            0b1010100
-    InstNop, //                            0b1010101
-    InstNop, //                            0b1010110
-    InstNop, //                            0b1010111
-    InstNop, //                            0b1011000
-    InstNop, //                            0b1011001
-    InstNop, //                            0b1011010
-    InstNop, //                            0b1011011
-    InstNop, //                            0b1011100
-    InstNop, //                            0b1011101
-    InstNop, //                            0b1011110
-    InstNop, //                            0b1011111
-    InstNop, //                            0b1100000
-    InstNop, //                            0b1100001
-    InstNop, //                            0b1100010
-    InstNop, //                            0b1100011
-    InstNop, //                            0b1100100
-    InstNop, //                            0b1100101
-    InstNop, //                            0b1100110
-    InstNop, //                            0b1100111
-    InstNop, //                            0b1101000
-    InstNop, //                            0b1101001
-    InstNop, //                            0b1101010
-    InstNop, //                            0b1101011
-    InstNop, //                            0b1101100
-    InstNop, //                            0b1101101
-    InstNop, //                            0b1101110
-    InstNop, //                            0b1101111
-    InstNop, //                            0b1110000
-    InstNop, //                            0b1110001
-    InstNop, //                            0b1110010
-    InstNop, //                            0b1110011
-    InstNop, //                            0b1110100
-    InstNop, //                            0b1110101
-    InstNop, //                            0b1110110
-    InstNop, //                            0b1110111
-    InstNop, //                            0b1111000
-    InstNop, //                            0b1111001
-    InstNop, //                            0b1111010
-    InstNop, //                            0b1111011
-    InstNop, //                            0b1111100
-    InstNop, //                            0b1111101
-    InstNop, //                            0b1111110
-    InstNop, //                            0b1111111
+    InstCOP2Spec2Type("vnop",     OL_NONE,        0b0101111),
+    InstCOP2Spec2Type("vmove",    OL_VT_VS,       0b0110000),
+    InstCOP2Spec2Type("vmr32",    OL_VT_VS,       0b0110001),
+    InstNop, //                                   0b0110010
+    InstNop, //                                   0b0110011
+    InstCOP2Spec2Type("vlqi",     OL_VT_VIS_INC,  0b0110100),
+    InstCOP2Spec2Type("vsqi",     OL_VS_VIT_INC,  0b0110101),
+    InstCOP2Spec2Type("vlqd",     OL_VT_VIS_DEC,  0b0110110),
+    InstCOP2Spec2Type("vsqd",     OL_VS_VIT_DEC,  0b0110111),
+    InstCOP2Spec2Type("vdiv",     OL_Q_VSF_VTF,   0b0111000),
+    InstCOP2Spec2Type("vsqrt",    OL_Q_VTF,       0b0111001),
+    InstCOP2Spec2Type("vrsqrt",   OL_Q_VSF_VTF,   0b0111010),
+    InstCOP2Spec2Type("vwaitq",   OL_NONE,        0b0111011),
+    InstCOP2Spec2Type("vmtir",    OL_VT_VS,       0b0111100),
+    InstCOP2Spec2Type("vmfir",    OL_VT_VS,       0b0111101),
+    InstCOP2Spec2Type("vilwr",    OL_VT_VS,       0b0111110),
+    InstCOP2Spec2Type("viswr",    OL_VT_VS,       0b0111111),
+    InstCOP2Spec2Type("vrnext",   OL_VT_R,        0b1000000),
+    InstCOP2Spec2Type("vrget",    OL_VT_R,        0b1000001),
+    InstCOP2Spec2Type("vrinit",   OL_R_VSF,       0b1000010),
+    InstCOP2Spec2Type("vrxor",    OL_R_VSF,       0b1000011),
+    InstNop, //                                   0b1000100
+    InstNop, //                                   0b1000101
+    InstNop, //                                   0b1000110
+    InstNop, //                                   0b1000111
+    InstNop, //                                   0b1001000
+    InstNop, //                                   0b1001001
+    InstNop, //                                   0b1001010
+    InstNop, //                                   0b1001011
+    InstNop, //                                   0b1001100
+    InstNop, //                                   0b1001101
+    InstNop, //                                   0b1001110
+    InstNop, //                                   0b1001111
+    InstNop, //                                   0b1010000
+    InstNop, //                                   0b1010001
+    InstNop, //                                   0b1010010
+    InstNop, //                                   0b1010011
+    InstNop, //                                   0b1010100
+    InstNop, //                                   0b1010101
+    InstNop, //                                   0b1010110
+    InstNop, //                                   0b1010111
+    InstNop, //                                   0b1011000
+    InstNop, //                                   0b1011001
+    InstNop, //                                   0b1011010
+    InstNop, //                                   0b1011011
+    InstNop, //                                   0b1011100
+    InstNop, //                                   0b1011101
+    InstNop, //                                   0b1011110
+    InstNop, //                                   0b1011111
+    InstNop, //                                   0b1100000
+    InstNop, //                                   0b1100001
+    InstNop, //                                   0b1100010
+    InstNop, //                                   0b1100011
+    InstNop, //                                   0b1100100
+    InstNop, //                                   0b1100101
+    InstNop, //                                   0b1100110
+    InstNop, //                                   0b1100111
+    InstNop, //                                   0b1101000
+    InstNop, //                                   0b1101001
+    InstNop, //                                   0b1101010
+    InstNop, //                                   0b1101011
+    InstNop, //                                   0b1101100
+    InstNop, //                                   0b1101101
+    InstNop, //                                   0b1101110
+    InstNop, //                                   0b1101111
+    InstNop, //                                   0b1110000
+    InstNop, //                                   0b1110001
+    InstNop, //                                   0b1110010
+    InstNop, //                                   0b1110011
+    InstNop, //                                   0b1110100
+    InstNop, //                                   0b1110101
+    InstNop, //                                   0b1110110
+    InstNop, //                                   0b1110111
+    InstNop, //                                   0b1111000
+    InstNop, //                                   0b1111001
+    InstNop, //                                   0b1111010
+    InstNop, //                                   0b1111011
+    InstNop, //                                   0b1111100
+    InstNop, //                                   0b1111101
+    InstNop, //                                   0b1111110
+    InstNop, //                                   0b1111111
 };
 
 MipsInstruction* FindInstruction(u32 instruction)

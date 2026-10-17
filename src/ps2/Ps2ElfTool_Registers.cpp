@@ -38,6 +38,6 @@ const char* g_MipsRegistersCOP1[32] = {
 const char* g_MipsRegistersCOP2[32] = {
     "vi0",  "vi1",  "vi2",  "vi3",  "vi4",  "vi5",  "vi6",  "vi7",
     "vi8",  "vi9",  "vi10", "vi11", "vi12", "vi13", "vi14", "vi15",
-    "status", "mac", "clipping", "res19", "r", "i", "q", "res23",
-    "res24", "res25", "tpc", "cmsar0", "fbrst", "vpu_stat", "res30", "cmsar1"
+    "vi16", "vi17", "vi18", "vi19", "vi20", "vi21", "vi22", "vi23",
+    "vi24", "vi25", "vi26", "vi27", "vi28", "vi29", "vi30", "vi31"
 };
