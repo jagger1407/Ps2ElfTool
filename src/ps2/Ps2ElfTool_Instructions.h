@@ -47,7 +47,8 @@ J-Type (Jump)
 #define MIPS_ARG_FD MIPS_ARG_SHAMT
 
 typedef enum oplayout {
-    OL_NONE,        // nop, syscall, break
+    OL_NONE,        // nop
+    OL_CALL,        // syscall, break
     OL_RD,          // mflo   $rd
     OL_RS,          // jr     $rs
     OL_RD_RS,       // jalr   $rd, $rs

@@ -73,35 +73,34 @@ void MipsDecoder::AnalyzeLabels()
 {
     if(this->data.Size() == 0) return;
 
+    u64 size = lbls.Size();
+
     MoveToStart();
 
     while(!AtEnd()) {
         u32 cur = *this->ip;
         MipsInstruction inst;
         DecodeInstruction(&inst, cur);
+
         if(inst.layout == OL_TARGET) {
             u32 addr = JUMP(pc, inst.args[MIPS_ARG_TARGET].value);
-            if(addr - start < lbls.Size()) {
-                if(String(inst.mnemonic) == "jal")
-                    lbls[addr - this->start] = LBL_FUN;
-                else
-                    lbls[addr - this->start] = LBL_LAB;
+            u32 offset = addr - start;
+            if(offset < size) {
+                if(*inst.mnemonic == 'j') {
+                    lbls[offset] = LBL_FUN;
+                }
+                else if(lbls[offset] != LBL_FUN) {
+                    lbls[offset] = LBL_LAB;
+                }
             }
         }
-        else if(inst.layout == OL_RS_RT_IMM) {
+        else if(inst.layout == OL_RS_RT_IMM || (inst.layout == OL_RS_IMM && *inst.mnemonic == 'b')) {
             u32 addr = BRANCH(pc, (s16)inst.args[MIPS_ARG_IMM].value);
-            if(addr - start < lbls.Size()) {
-                lbls[addr - this->start] = LBL_LAB;
-            }
-
-        }
-        else if(inst.layout == OL_RS_IMM && *inst.mnemonic == 'b') {
-            u32 addr = BRANCH(pc, (s16)inst.args[MIPS_ARG_IMM].value);
-            if(addr - start < lbls.Size()) {
-                lbls[addr - this->start] = LBL_LAB;
+            u32 offset = addr - start;
+            if(offset < size && lbls[offset] != LBL_FUN) {
+                lbls[offset] = LBL_LAB;
             }
         }
-
         // TODO: Generate DAT Labels for data sections
 
         Next();
@@ -118,41 +117,62 @@ List<String> MipsDecoder::GetAsm()
     MoveToStart();
 
     while(!AtEnd()) {
+        String line;
         u32 loc = pc - start;
 
         if(lbls[loc] != LBL_NONE) {
             out += String::Format("%s%08x:", lblprefix[lbls[loc]], loc + start);
         }
 
-        MipsInstruction inst;
-        DecodeInstruction(&inst, *ip);
+        MipsInstruction rawinst;
+        MipsInstruction* inst = &rawinst;
+        DecodeInstruction(inst, *ip);
 
         // TODO: Find a better way of adding the labels
 
-        if(inst.layout == OL_TARGET) {
-            u32 addr = JUMP(pc, inst.args[MIPS_ARG_TARGET].value);
-            if(String(inst.mnemonic) == "jal") {
-                out += String::Format("    jal FUN_%08x", addr);
-            }
-            else if(addr - start < lbls.Size())
-                out += String::Format("    %s %s%08x", inst.mnemonic, lblprefix[lbls[addr - start]], addr);
+        if(inst->layout == OL_TARGET) {
+            u32 addr = JUMP(pc, inst->args[MIPS_ARG_TARGET].value);
+            u32 offset = addr - start;
+            if(offset < lbls.Size())
+                line = String::Format("%s %s%08x", inst->mnemonic, lblprefix[lbls[offset]], addr);
             else
-                out += String::Format("    %s LAB_%08x", inst.mnemonic, addr);
+                line = String::Format("%s 0x%08x", inst->mnemonic, addr);
         }
-        else if(inst.layout == OL_RS_RT_IMM) {
-            u32 addr = BRANCH(pc, (s16)inst.args[MIPS_ARG_IMM].value);
-            out += String::Format("    %s $%s, $%s, LAB_%08x", inst.mnemonic,
-                                  g_MipsRegistersGP[inst.args[MIPS_ARG_RS].value], g_MipsRegistersGP[inst.args[MIPS_ARG_RT].value], addr);
+        else if(inst->layout == OL_RS_RT_IMM) {
+            u32 addr = BRANCH(pc, (s16)inst->args[MIPS_ARG_IMM].value);
+            u32 offset = addr - start;
+            if(offset < lbls.Size()) {
+                line = String::Format("%s $%s, $%s, %s%08x", inst->mnemonic,
+                                      GPREG(MIPS_ARG_RS), GPREG(MIPS_ARG_RT), lblprefix[lbls[offset]], addr);
+            }
+            else
+                line = String::Format("%s $%s, $%s, 0x%08x", inst->mnemonic,
+                                      GPREG(MIPS_ARG_RS), GPREG(MIPS_ARG_RT), addr);
         }
-        else if(inst.layout == OL_RS_IMM && *inst.mnemonic == 'b') {
-            u32 addr = BRANCH(pc, (s16)inst.args[MIPS_ARG_IMM].value);
-            out += String::Format("    %s $%s, LAB_%08x", inst.mnemonic, g_MipsRegistersGP[inst.args[MIPS_ARG_RS].value], addr);
+        else if(inst->layout == OL_RS_IMM && *inst->mnemonic == 'b') {
+            u32 addr = BRANCH(pc, (s16)inst->args[MIPS_ARG_IMM].value);
+            u32 offset = addr - start;
+            // bcNf or bcNt and likely variants don't use the RS reg
+            if(inst->opcode >= 0x10 && inst->opcode <= 0x12) {
+                if(offset < lbls.Size()) {
+                    line = String::Format("%s %s%08x", inst->mnemonic, lblprefix[lbls[offset]], addr);
+                }
+                else
+                    line = String::Format("%s 0x%08x", inst->mnemonic, addr);
+            }
+            else if(offset < lbls.Size()) {
+                line = String::Format("%s $%s, %s%08x", inst->mnemonic, GPREG(MIPS_ARG_RS), lblprefix[lbls[offset]], addr);
+            }
+            else
+                line = String::Format("%s $%s, 0x%08x", inst->mnemonic, GPREG(MIPS_ARG_RS), addr);
         }
         else {
-            String asmstr = GetInstructionAsm(&inst, pc);
-            if(asmstr.Length() == 0) asmstr = String::Format(".word 0x%08x", *ip);
-            out += "    " + asmstr;
+            line = GetInstructionAsm(inst, pc);
+            if(line.Length() == 0)
+                line = String::Format(".word 0x%08x", *ip);
         }
+
+        out += "    " + line;
 
         Next();
     }
@@ -200,6 +220,16 @@ String MipsDecoder::GetInstructionAsm(MipsInstruction* inst, u32 pc)
         case OL_NONE: { // Used for nop or syscall
             out = inst->mnemonic;
         } break;
+        case OL_CALL: {
+            out = inst->mnemonic;
+            u32 code1 = inst->args[MIPS_ARG_SHAMT].value;
+            code1 += inst->args[MIPS_ARG_RD].value << 5;
+            u32 code2 = inst->args[MIPS_ARG_RT].value;
+            code2 += inst->args[MIPS_ARG_RS].value << 5;
+            if(code1 > 0) {
+                out += String::Format(" 0x%x, 0x%x", code2, code1);
+            }
+        } break;
         case OL_RD: { // Used for mflo
             out = String::Format("%s $%s", inst->mnemonic, GPREG(MIPS_ARG_RD));
         } break;
@@ -237,7 +267,7 @@ String MipsDecoder::GetInstructionAsm(MipsInstruction* inst, u32 pc)
         } break;
         case OL_RD_RT_SA: { // Used for sll
             out = String::Format("%s $%s, $%s, %d", inst->mnemonic,
-                                 GPREG(MIPS_ARG_RD), GPREG(MIPS_ARG_RT), inst->args[MIPS_ARG_IMM].value);
+                                 GPREG(MIPS_ARG_RD), GPREG(MIPS_ARG_RT), inst->args[MIPS_ARG_SHAMT].value);
         } break;
 
         case OL_TARGET: { // Used for jal

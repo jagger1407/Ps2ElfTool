@@ -80,15 +80,15 @@ MipsInstruction g_MipsInstructionsR[] = {
     InstRType("jalr",    OL_RD_RS,    0b001001),
     InstRType("movz",    OL_RD_RS_RT, 0b001010),
     InstRType("movn",    OL_RD_RS_RT, 0b001011),
-    InstRType("syscall", OL_NONE,     0b001100),
-    InstRType("break",   OL_NONE,     0b001101),
+    InstRType("syscall", OL_CALL,     0b001100),
+    InstRType("break",   OL_CALL,     0b001101),
     InstNop, //                       0b001110
     InstRType("sync",    OL_SYNC,     0b001111),
     InstRType("mfhi",    OL_RD,       0b010000),
     InstRType("mthi",    OL_RS,       0b010001),
     InstRType("mflo",    OL_RD,       0b010010),
     InstRType("mtlo",    OL_RS,       0b010011),
-    InstRType("dsllv",   OL_RD_RS_RT, 0b010100),
+    InstRType("dsllv",   OL_RD_RT_RS, 0b010100),
     InstNop, //                       0b010101
     InstRType("dsrlv",   OL_RD_RT_RS, 0b010110),
     InstRType("dsrav",   OL_RD_RT_RS, 0b010111),
@@ -412,10 +412,10 @@ MipsInstruction g_MipsInstructionsCOP0[] = {
 };
 
 MipsInstruction g_MipsInstructionsBC0[] = {
-    InstBC0Type("bc0f",  OL_TARGET, 0b00000),
-    InstBC0Type("bc0t",  OL_TARGET, 0b00001),
-    InstBC0Type("bc0fl", OL_TARGET, 0b00010),
-    InstBC0Type("bc0tl", OL_TARGET, 0b00011),
+    InstBC0Type("bc0f",  OL_RS_IMM, 0b00000),
+    InstBC0Type("bc0t",  OL_RS_IMM, 0b00001),
+    InstBC0Type("bc0fl", OL_RS_IMM, 0b00010),
+    InstBC0Type("bc0tl", OL_RS_IMM, 0b00011),
     InstNop, //                     0b00100
     InstNop, //                     0b00101
     InstNop, //                     0b00110
@@ -549,10 +549,10 @@ MipsInstruction g_MipsInstructionsCOP1[] = {
 };
 
 MipsInstruction g_MipsInstructionsBC1[] = {
-    InstBC1Type("bc1f",  OL_TARGET, 0b00000),
-    InstBC1Type("bc1t",  OL_TARGET, 0b00001),
-    InstBC1Type("bc1fl", OL_TARGET, 0b00010),
-    InstBC1Type("bc1tl", OL_TARGET, 0b00011),
+    InstBC1Type("bc1f",  OL_RS_IMM, 0b00000),
+    InstBC1Type("bc1t",  OL_RS_IMM, 0b00001),
+    InstBC1Type("bc1fl", OL_RS_IMM, 0b00010),
+    InstBC1Type("bc1tl", OL_RS_IMM, 0b00011),
     InstNop, //                     0b00100
     InstNop, //                     0b00101
     InstNop, //                     0b00110
@@ -753,10 +753,10 @@ MipsInstruction g_MipsInstructionsCOP2[] = {
 };
 
 MipsInstruction g_MipsInstructionsBC2[] = {
-    InstBC2Type("bc2f",  OL_TARGET, 0b00000),
-    InstBC2Type("bc2t",  OL_TARGET, 0b00001),
-    InstBC2Type("bc2fl", OL_TARGET, 0b00010),
-    InstBC2Type("bc2tl", OL_TARGET, 0b00011),
+    InstBC2Type("bc2f",  OL_RS_IMM, 0b00000),
+    InstBC2Type("bc2t",  OL_RS_IMM, 0b00001),
+    InstBC2Type("bc2fl", OL_RS_IMM, 0b00010),
+    InstBC2Type("bc2tl", OL_RS_IMM, 0b00011),
     InstNop, //                     0b00100
     InstNop, //                     0b00101
     InstNop, //                     0b00110
